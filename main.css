@@ -1,0 +1,712 @@
+/**
+ * ====================================================================
+ * WEBSITE CHÚC MỪNG 20/10 - CSS NỀN TẢNG (TASK 02)
+ * ====================================================================
+ * File định nghĩa Design Tokens, CSS Reset, cấu trúc 5 lớp giao diện
+ * và các quy tắc hiển thị responsive cơ bản.
+ * Lưu ý: Không chứa animation của các hiệu ứng nghiệp vụ (TASK 03 - 09).
+ */
+
+/* --------------------------------------------------------------------
+   1. DESIGN TOKENS (CSS CUSTOM PROPERTIES)
+   -------------------------------------------------------------------- */
+:root {
+  /* Bảng màu chủ đạo: Không gian tối huyền bí kết hợp sắc hồng lãng mạn */
+  --bg-color-deep: #05020c;
+  --bg-color-space: #0c061a;
+  --bg-overlay: rgba(5, 2, 12, 0.75);
+
+  /* Màu chữ và sắc thái ánh sáng */
+  --text-main: #fff5f8;
+  --text-muted: #d8c2d9;
+  --text-dim: #9d8ba2;
+
+  /* Màu nhấn (Accent colors) */
+  --accent-rose: #ff4d88;
+  --accent-pink-soft: #ff85a2;
+  --accent-gold: #f6d365;
+  --accent-purple: #9b5de5;
+
+  /* Thứ tự lớp hiển thị (Z-Index Tokens) */
+  --z-layer-universe: 1;      /* Lớp 1: Nền vũ trụ sao rơi (TASK 03) - Thấp nhất */
+  --z-layer-flower-canvas: 10;/* Lớp 2: Đóa hoa hạt neon Canvas giai đoạn 1 (TASK 04A) */
+  --z-layer-sphere: 20;       /* Lớp 3: Quả cầu 3D Three.js (TASK 04) */
+  --z-layer-ending: 35;       /* Lớp 5: Màn hình Lịch, Tranh trái tim & Phong thư */
+  --z-layer-bloom: 45;        /* Lớp 4: Biển hoa ảnh bung nở - Nằm trên để hoa rơi tự do trước màn hình lịch */
+  --z-layer-overlay-ui: 50;   /* Lớp 6: Nút tương tác và UI trên cùng */
+
+  /* Khoảng cách (Spacing) */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+
+  /* Thời gian chuyển động cơ bản dự kiến (Transition Durations) */
+  --duration-fast: 300ms;
+  --duration-normal: 600ms;
+  --duration-slow: 1200ms;
+  --ease-smooth: cubic-bezier(0.25, 0.1, 0.25, 1);
+
+  /* Phông chữ */
+  --font-body: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: 'Playfair Display', Georgia, serif;
+}
+
+/* --------------------------------------------------------------------
+   2. CSS RESET & QUY TẮC CƠ BẢN
+   -------------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  max-width: 100vw;
+  max-height: 100vh;
+  overflow: hidden; /* Ngăn chặn tuyệt đối hiện tượng tràn thanh cuộn */
+  background-color: var(--bg-color-deep);
+  color: var(--text-main);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+body.phase-hold {
+  cursor: pointer;
+}
+
+/* --------------------------------------------------------------------
+   3. BỐ CỤC CÁC LỚP GIAO DIỆN (APP LAYERS)
+   -------------------------------------------------------------------- */
+.app-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none; /* Mặc định để click xuyên qua nếu lớp rỗng */
+  isolation: isolate;   /* Thiết lập Stacking Context độc lập tuyệt đối cho từng lớp */
+}
+
+/* Lớp 1: Nền vũ trụ sao rơi & thiên hà */
+.layer-universe {
+  z-index: var(--z-layer-universe);
+  background: radial-gradient(circle at 50% 50%, var(--bg-color-space) 0%, var(--bg-color-deep) 100%);
+}
+
+.universe-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+
+/* Lớp 2: Quả cầu 3D Three.js */
+.layer-sphere {
+  z-index: var(--z-layer-sphere);
+}
+
+/* Lớp 3: Hoa hạt trung tâm Canvas (Giai đoạn 1 - TASK 04A) */
+.layer-flower-canvas {
+  z-index: var(--z-layer-flower-canvas);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none; /* Tuyệt đối không chặn click/chạm */
+  transition: opacity 1.8s var(--ease-smooth), filter 1.8s var(--ease-smooth);
+}
+
+/* Khi chuyển sang giai đoạn lan tỏa, làm dịu nhẹ hạt sáng ở nền một cách êm ái */
+.layer-flower-canvas.softened {
+  opacity: 0.65;
+  filter: brightness(0.9);
+  transition: opacity 1.8s ease, filter 1.8s ease;
+}
+
+.layer-flower-canvas.fade-out {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: opacity 1.0s ease;
+}
+
+.flower-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  display: block;
+}
+
+/* Lớp 4: Hoa ảnh bung nở phủ màn hình (Giai đoạn 2 - TASK 04B) */
+.layer-bloom {
+  z-index: var(--z-layer-bloom);
+  pointer-events: none;
+  overflow: hidden;
+  transition: opacity 1.2s ease;
+}
+
+/* Trạng thái toàn bộ hoa rơi xuống tự nhiên và mờ dần khi nhấn Tiếp tục (Theo ảnh mẫu):
+   - Giữ nguyên 100% các bông hoa hiện có trên màn hình, không xóa hoặc giảm số lượng hoa.
+   - Các bông hoa lần lượt tách khỏi vị trí ban đầu trong biển hoa, trôi tự do trong không gian vũ trụ tím.
+   - Mỗi bông hoa có vận tốc, gia tốc (--fall-ease), độ trôi ngang (--fall-drift-x) và góc xoay (--fall-rot) riêng biệt.
+   - Mờ dần trong quá trình rơi, lộ dần nền vũ trụ tím phía sau; kết thúc mượt mà không nháy màn hình. */
+.layer-bloom.falling .bloom-flower-item {
+  animation: none !important; /* Dừng ngay hiệu ứng đung đưa cũ */
+  transform: translate(var(--fall-drift-x, 0px), var(--fall-dist-y, 620px)) scale(var(--fall-scale, 0.90)) rotate(calc(var(--target-rotate, 0deg) + var(--fall-rot, 0deg))) !important;
+  opacity: 0 !important;
+  transition: transform var(--fall-duration, 1.60s) var(--fall-ease, cubic-bezier(0.35, 0, 0.65, 0.98)),
+              opacity var(--fall-duration, 1.60s) cubic-bezier(0.45, 0, 0.8, 1),
+              filter 0.4s ease !important;
+  transition-delay: var(--fall-delay, 0s) !important;
+  pointer-events: none !important;
+}
+
+/* Lớp hoa sau khi rơi hoàn tất: ẩn hoàn toàn không che lấp tầng sau */
+.layer-bloom.fade-out {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
+
+/* Tôn trọng người dùng bật tùy chọn giảm chuyển động (prefers-reduced-motion) */
+@media (prefers-reduced-motion: reduce) {
+  .layer-bloom.falling .bloom-flower-item {
+    transform: translate(0, 0) scale(1) rotate(var(--target-rotate, 0deg)) !important;
+    opacity: 0 !important;
+    transition: opacity 0.6s ease !important;
+    transition-delay: 0s !important;
+  }
+}
+
+.bloom-flower-item {
+  position: absolute;
+  pointer-events: auto; /* Cho phép nhận tương tác hover/chạm */
+  cursor: default;
+  /* Xuất phát hơi dịch từ phía tâm, thu nhỏ scale(0.04) */
+  transform: translate3d(var(--start-offset-x, 0px), var(--start-offset-y, 0px), 0) scale(0.04) rotate(0deg);
+  opacity: 0;
+  filter: drop-shadow(0 6px 14px rgba(20, 2, 12, 0.25));
+  will-change: transform, opacity;
+  transition: filter 0.3s ease;
+}
+
+/* Khi nở rộ: toàn bộ vị trí, góc xoay và độ bung xòe được điều phối đồng bộ liên tục 60fps qua JS RAF */
+.layer-bloom.blooming .bloom-flower-item {
+  will-change: transform, opacity;
+}
+
+/* Giai đoạn duy trì chuyển động liên tục có quy luật cho biển hoa 3D */
+.layer-bloom.fully-bloomed .bloom-flower-item {
+  will-change: transform;
+}
+
+/* Hiệu ứng tương tác ánh sáng khi di chuột qua đóa hoa */
+.layer-bloom.fully-bloomed .bloom-flower-item:hover {
+  filter: drop-shadow(0 16px 32px rgba(255, 133, 162, 0.45)) brightness(1.08);
+}
+
+.bloom-flower-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* Lớp 5: Khung tranh trái tim, lịch và phong thư */
+.layer-ending {
+  z-index: var(--z-layer-ending);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* --------------------------------------------------------------------
+   4. LỚP GIAO DIỆN TƯƠNG TÁC TRÊN CÙNG (UI OVERLAY & NÚT BẤM)
+   -------------------------------------------------------------------- */
+.layer-ui {
+  z-index: var(--z-layer-overlay-ui);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none; /* Cho phép click xuyên qua toàn bộ vùng trống */
+}
+
+/* --------------------------------------------------------------------
+   4. GỢI Ý CHỮ Ở GIỮA MÀN HÌNH (KHÔNG KHUNG) & CHUYỂN CẢNH PHÉP THUẬT
+   -------------------------------------------------------------------- */
+.cosmic-center-hint {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) scale(0.92);
+  z-index: var(--z-layer-overlay-ui);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none; /* Cho phép chạm bất kỳ đâu trên màn hình */
+  user-select: none;
+  -webkit-user-select: none;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  opacity: 0;
+  transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.cosmic-center-text {
+  font-family: var(--font-body, 'Montserrat', sans-serif);
+  font-size: clamp(0.9rem, 2.2vw, 1.12rem);
+  font-weight: 300;
+  letter-spacing: 2.2px;
+  color: #fff2f7;
+  text-transform: none;
+  text-align: center;
+  white-space: nowrap;
+  background: transparent;
+  border: none;
+  text-shadow: 0 0 10px rgba(255, 133, 162, 0.9),
+               0 0 22px rgba(217, 38, 169, 0.75),
+               0 0 36px rgba(138, 43, 226, 0.6);
+}
+
+.cosmic-center-hint.visible {
+  opacity: 0.95;
+  transform: translate(-50%, -50%) scale(1);
+  animation: cosmicCenterBreath 2.6s ease-in-out infinite;
+}
+
+@keyframes cosmicCenterBreath {
+  0%, 100% {
+    opacity: 0.72;
+    transform: translate(-50%, -50%) scale(0.97);
+    text-shadow: 0 0 8px rgba(255, 133, 162, 0.75),
+                 0 0 16px rgba(217, 38, 169, 0.5);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.03);
+    text-shadow: 0 0 14px rgba(255, 214, 238, 0.95),
+                 0 0 26px rgba(217, 38, 169, 0.85),
+                 0 0 42px rgba(138, 43, 226, 0.7);
+  }
+}
+
+.cosmic-center-hint.hidden {
+  opacity: 0 !important;
+  transform: translate(-50%, -50%) scale(0.85) !important;
+  transition: opacity 0.4s ease, transform 0.4s ease !important;
+}
+
+/* Lớp Canvas chuyển cảnh vòng sáng tím hồng và bụi sao từ tâm */
+.cosmic-portal-layer {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 28; /* Nằm trên lớp hoa nở (20) và dưới lớp lịch kết thúc (30) */
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease;
+}
+
+.cosmic-portal-layer.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.cosmic-portal-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Ẩn triệt để nút cũ nếu còn sót trong DOM */
+.start-hint {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
+
+/* --------------------------------------------------------------------
+   5. BỐ CỤC RESPONSIVE
+   -------------------------------------------------------------------- */
+/* Màn hình điện thoại (Dưới 768px) */
+@media (max-width: 767px) {
+  :root {
+    --space-md: 12px;
+    --space-lg: 18px;
+  }
+
+  .cosmic-touch-hint {
+    bottom: max(20px, calc(12px + env(safe-area-inset-bottom, 0px)));
+  }
+
+  /* Tối ưu hiệu năng GPU mobile: giảm độ sâu shadow, tránh re-rasterization nặng */
+  .bloom-flower-item {
+    filter: drop-shadow(0 3px 8px rgba(20, 2, 12, 0.20));
+  }
+}
+
+/* Màn hình lớn (Desktop từ 1200px trở lên) */
+@media (min-width: 1200px) {
+  :root {
+    --space-lg: 32px;
+  }
+}
+
+/* --------------------------------------------------------------------
+   6. QUẢ CẦU 3D THREE.JS CSS3D (SPHERE 3D CARDS) - TASK 04
+   -------------------------------------------------------------------- */
+.layer-sphere {
+  z-index: var(--z-layer-sphere);
+  opacity: 0; /* Ẩn ở màn hình mở đầu để đóa hoa hạt 6 cánh là tâm điểm duy nhất */
+  pointer-events: none;
+  transition: opacity 1.2s ease;
+}
+
+.layer-sphere.active {
+  opacity: 1;
+  pointer-events: auto;
+  z-index: 35;
+}
+
+/* Hiệu ứng chuyển cảnh quả cầu 3D thu nhỏ nhẹ và mờ dần trong khi vẫn xoay */
+.layer-sphere.is-transitioning-out {
+  opacity: 0 !important;
+  transform: scale(0.85) translateZ(-60px);
+  filter: blur(2.5px);
+  pointer-events: none !important;
+  transition: opacity 1000ms cubic-bezier(0.4, 0, 0.2, 1),
+              transform 1000ms cubic-bezier(0.4, 0, 0.2, 1),
+              filter 1000ms ease;
+}
+
+@media (max-width: 768px) {
+  .layer-sphere.is-transitioning-out {
+    filter: none;
+    transform: scale(0.88);
+    transition: opacity 950ms cubic-bezier(0.4, 0, 0.2, 1),
+                transform 950ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+/* Hiệu ứng chuyển cảnh Quả Cầu 3D hiện dần từ tâm màn hình & phóng lớn nhẹ */
+.layer-sphere.is-entering {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  animation: sphereEntrance 750ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes sphereEntrance {
+  0% {
+    opacity: 0;
+    transform: scale(0.82) translateZ(-80px);
+    filter: blur(3px);
+  }
+  60% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateZ(0);
+    filter: blur(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .layer-sphere.is-entering {
+    animation-name: sphereEntranceMobile;
+  }
+  @keyframes sphereEntranceMobile {
+    0% {
+      opacity: 0;
+      transform: scale(0.86);
+      filter: none;
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+      filter: none;
+    }
+  }
+}
+
+/* Hiệu ứng màn hình Lịch mờ dần, thu nhỏ nhẹ và dịch chuyển về tâm khi nhấn Tiếp tục */
+.calendar-screen.is-transitioning-out {
+  opacity: 0 !important;
+  transform: scale(0.93) translateY(-6px) !important;
+  filter: blur(2px);
+  pointer-events: none !important;
+  transition: opacity 650ms cubic-bezier(0.22, 1, 0.36, 1),
+              transform 650ms cubic-bezier(0.22, 1, 0.36, 1),
+              filter 650ms ease !important;
+}
+
+@media (max-width: 768px) {
+  .calendar-screen.is-transitioning-out {
+    filter: none !important;
+    transform: scale(0.94) translateY(-4px) !important;
+  }
+}
+
+/* Ánh sáng hồng kem dịu & Hạt lấp lánh chuyển tiếp giữa Lịch và Quả Cầu 3D */
+.calendar-to-sphere-aura {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 42;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 300ms cubic-bezier(0.2, 0.8, 0.3, 1), visibility 300ms;
+}
+
+.calendar-to-sphere-aura.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.calendar-to-sphere-aura.fading {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 450ms cubic-bezier(0.4, 0, 0.2, 1), visibility 450ms;
+}
+
+.calendar-to-sphere-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%, rgba(255, 238, 242, 0.45) 0%, rgba(255, 195, 218, 0.24) 34%, rgba(220, 180, 245, 0.12) 56%, transparent 74%);
+}
+
+.calendar-to-sphere-sparkles {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.calendar-to-sphere-sparkles .c-sparkle {
+  position: absolute;
+  font-size: 18px;
+  color: #ffe6ef;
+  text-shadow: 0 0 10px rgba(255, 185, 215, 0.8), 0 0 20px rgba(255, 255, 255, 0.6);
+  opacity: 0;
+  user-select: none;
+}
+
+.calendar-to-sphere-aura.active .s-1 {
+  animation: sparkleDrift1 0.75s ease-out forwards;
+}
+.calendar-to-sphere-aura.active .s-2 {
+  animation: sparkleDrift2 0.75s 0.05s ease-out forwards;
+}
+.calendar-to-sphere-aura.active .s-3 {
+  animation: sparkleDrift3 0.75s 0.08s ease-out forwards;
+  font-size: 15px;
+}
+.calendar-to-sphere-aura.active .s-4 {
+  animation: sparkleDrift4 0.75s 0.12s ease-out forwards;
+}
+.calendar-to-sphere-aura.active .s-5 {
+  animation: sparkleDrift5 0.75s 0.15s ease-out forwards;
+}
+
+@keyframes sparkleDrift1 {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.4); }
+  35% { opacity: 0.9; transform: translate(-30px, -35px) scale(1.1); }
+  100% { opacity: 0; transform: translate(-55px, -60px) scale(0.6); }
+}
+@keyframes sparkleDrift2 {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.4); }
+  35% { opacity: 0.9; transform: translate(35px, -25px) scale(1); }
+  100% { opacity: 0; transform: translate(60px, -45px) scale(0.5); }
+}
+@keyframes sparkleDrift3 {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.3); }
+  35% { opacity: 0.85; transform: translate(-20px, 30px) scale(1.1); }
+  100% { opacity: 0; transform: translate(-35px, 55px) scale(0.5); }
+}
+@keyframes sparkleDrift4 {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.4); }
+  35% { opacity: 0.9; transform: translate(30px, 35px) scale(1); }
+  100% { opacity: 0; transform: translate(50px, 60px) scale(0.6); }
+}
+@keyframes sparkleDrift5 {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.4); }
+  35% { opacity: 0.95; transform: translate(0, -45px) scale(1.2); }
+  100% { opacity: 0; transform: translate(0, -75px) scale(0.5); }
+}
+
+/* Quầng sáng hào quang chuyển tiếp nhẹ nhàng nối quả cầu và phong bì */
+.sphere-to-letter-aura {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 38;
+  opacity: 0;
+  background: radial-gradient(circle at 50% 50%, rgba(255, 185, 222, 0.32) 0%, rgba(192, 132, 252, 0.18) 38%, rgba(10, 4, 22, 0) 72%);
+  transition: opacity 400ms cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+.sphere-to-letter-aura.glowing {
+  opacity: 1;
+}
+
+.sphere-to-letter-aura.fading {
+  opacity: 0;
+  transition: opacity 650ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sphere-action-bar.hiding {
+  opacity: 0 !important;
+  transform: translateX(-50%) translateY(14px) scale(0.92) !important;
+  pointer-events: none !important;
+  transition: opacity 0.35s ease, transform 0.35s ease !important;
+}
+
+.layer-ending {
+  z-index: var(--z-layer-ending);
+  pointer-events: none;
+}
+
+.sphere-css3d-canvas {
+  overflow: hidden;
+  touch-action: none; /* Ngăn chặn cuộn trang khi vuốt xoay quả cầu trên mobile */
+}
+
+/* Thẻ phần tử trên mặt cầu */
+.sphere-element {
+  width: 130px;
+  height: 130px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  box-sizing: border-box;
+  background: rgba(18, 8, 35, 0.72);
+  border: 1px solid rgba(255, 133, 162, 0.35);
+  box-shadow: 0 4px 18px rgba(155, 93, 229, 0.22), inset 0 0 12px rgba(255, 77, 136, 0.08);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grab;
+  transition: border-color var(--duration-fast) var(--ease-smooth),
+              box-shadow var(--duration-fast) var(--ease-smooth),
+              transform var(--duration-fast) var(--ease-smooth);
+}
+
+.sphere-element:hover {
+  border-color: rgba(255, 133, 162, 0.9);
+  box-shadow: 0 6px 25px rgba(255, 133, 162, 0.45);
+  transform: scale(1.08);
+}
+
+.sphere-element:active {
+  cursor: grabbing;
+}
+
+/* Dạng thẻ ảnh kỷ niệm */
+.sphere-card-photo {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: linear-gradient(135deg, rgba(38, 14, 62, 0.8) 0%, rgba(16, 6, 28, 0.92) 100%);
+  border: 1px dashed rgba(255, 133, 162, 0.35);
+  padding: 6px;
+}
+
+.sphere-card-photo .photo-icon {
+  font-size: 26px;
+  margin-bottom: 4px;
+  filter: drop-shadow(0 0 6px rgba(255, 133, 162, 0.5));
+}
+
+.sphere-card-photo .photo-caption {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+/* Dạng thẻ thông điệp chúc mừng */
+.sphere-card-text {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 6px;
+}
+
+.sphere-card-text p {
+  font-family: var(--font-serif);
+  font-size: 0.82rem;
+  line-height: 1.35;
+  color: var(--text-main);
+  text-shadow: 0 0 8px rgba(255, 133, 162, 0.35);
+  font-style: italic;
+}
+
+/* Tinh chỉnh quả cầu trên điện thoại: Giữ kích thước thẻ to rõ, không bị thu nhỏ quá mức */
+@media (max-width: 767px) {
+  .sphere-element {
+    width: 125px;
+    height: 125px;
+    padding: 7px;
+    border-radius: 12px;
+  }
+
+  .sphere-card-photo .photo-icon {
+    font-size: 24px;
+    margin-bottom: 3px;
+  }
+
+  .sphere-card-photo .photo-caption {
+    font-size: 0.7rem;
+  }
+
+  .sphere-card-text p {
+    font-size: 0.8rem;
+    line-height: 1.32;
+  }
+}

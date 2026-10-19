@@ -1,0 +1,1687 @@
+/**
+ * ====================================================================
+ * GIAO DIỆN MÀN HÌNH LỊCH 20/10 FANTASY & TRANH PUZZLE (CALENDAR.CSS)
+ * ====================================================================
+ * Bám sát tuyệt đối Ảnh mẫu 2:
+ * - Tờ lịch fantasy hồng tím trong suốt lơ lửng, uốn lượn mềm mại,
+ *   nghiêng nhẹ trong không gian 3D, mép cuộn ma thuật.
+ * - Các vòng quỹ đạo elip cong phát sáng 3D phân lớp trước/sau,
+ *   kèm ngôi sao 4 cánh rực rỡ ở đỉnh và hạt sáng chạy dọc quỹ đạo.
+ * - Cụm hoa hồng góc dưới phải nhỏ gọn, tuyệt đối không che ngày 20–31.
+ * - Khoanh tròn ngày 20 bằng nét hồng phát sáng tinh tế ôm sát số 20.
+ * - Tranh ghép puzzle bên trái hiển thị ảnh nguồn sắc nét.
+ * - ĐÃ XÓA HOÀN TOÀN khung capsule lời chúc đánh dấu đỏ, căn chỉnh nút Tiếp tục cân đối.
+ */
+
+/* 1. TOÀN MÀN HÌNH LỊCH */
+.calendar-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  z-index: 45;
+  transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+              visibility 0.8s;
+  transform: scale(0.95);
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+.calendar-screen.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: scale(1);
+}
+
+.calendar-screen.fade-out {
+  opacity: 0 !important;
+  transform: scale(0.95) translateY(8px) !important;
+  pointer-events: none !important;
+  transition: opacity 0.15s ease, transform 0.15s ease !important;
+}
+
+/* 2. BỐ CỤC CHÍNH CÂN ĐỐI KHÔNG TRÀN */
+.calendar-main-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 900px;
+  padding: 16px 16px 20px;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 2;
+  margin: auto;
+}
+
+/* ====================================================================
+   KHUNG TRANH FANTASY CHUNG BAO QUANH CẢ PUZZLE VÀ LỊCH 20/10
+   Khung tranh kính ma thuật lơ lửng giữa vũ trụ tím sâu thẳm:
+   - Viền hồng phấn, lavender và trắng ánh ngọc trai, nhòe sáng ngoài.
+   - Lớp nền tinh vân mờ bên trong: xanh bạc sương mờ (#DCE8F2),
+     trắng ngọc trai (#F4F2F8), xanh lavender nhạt (#D8D5ED),
+     hồng phấn (#F5E2EE), tím lavender dịu (#C9BFE4).
+   - Lớp kính mờ và phản chiếu ánh sáng nhẹ, không làm mờ nội dung.
+   - Điểm sáng lung linh ở 4 góc khung.
+   ==================================================================== */
+.fantasy-artwork-frame {
+  position: relative;
+  width: 100%;
+  max-width: 860px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  padding: 34px 38px 36px;
+  border-radius: 30px;
+  /* Viền ngọc trai lavender hồng phấn thanh lịch */
+  border: 1.5px solid rgba(244, 242, 248, 0.78);
+  /* Hiệu ứng nhòe sáng ngoài dịu dàng và bóng đổ sâu nổi bật trên nền vũ trụ tối */
+  box-shadow: 0 0 30px rgba(216, 213, 237, 0.42),
+              0 0 60px rgba(245, 226, 238, 0.28),
+              0 25px 65px rgba(5, 2, 15, 0.7),
+              inset 0 0 25px rgba(255, 255, 255, 0.25);
+  overflow: visible;
+  isolation: isolate;
+  transition: transform 0.6s ease, box-shadow 0.6s ease;
+}
+
+/* Lớp 1: Nền tinh vân mờ ảo bên trong khung (Bảng màu bắt buộc) */
+.frame-nebula-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+  /* Phối hợp các dải sương mềm mại từ bảng màu định hướng */
+  background:
+    /* Điểm sương hồng phấn rất nhạt ở góc dưới phải (#F5E2EE) */
+    radial-gradient(ellipse 55% 55% at 88% 85%, rgba(245, 226, 238, 0.65) 0%, transparent 60%),
+    /* Đám mây khí xanh bạc sương mờ góc trên trái (#DCE8F2) */
+    radial-gradient(ellipse 50% 50% at 14% 20%, rgba(220, 232, 242, 0.62) 0%, transparent 60%),
+    /* Quầng sáng trắng ngọc trai lan tỏa trung tâm (#F4F2F8) */
+    radial-gradient(circle 50% at 50% 50%, rgba(244, 242, 248, 0.5) 0%, transparent 65%),
+    /* Dải sương xanh lavender nhạt phía trên phải (#D8D5ED) */
+    radial-gradient(ellipse 45% 45% at 75% 15%, rgba(216, 213, 237, 0.55) 0%, transparent 55%),
+    /* Vệt tím lavender dịu chuyển tiếp mềm mại ở đáy (#C9BFE4) */
+    radial-gradient(ellipse 45% 45% at 35% 90%, rgba(201, 191, 228, 0.5) 0%, transparent 60%),
+    /* Nền sương bạc ngọc trai & lavender dịu đa tầng liên tục */
+    linear-gradient(145deg,
+      rgba(220, 232, 242, 0.46) 0%,
+      rgba(244, 242, 248, 0.38) 32%,
+      rgba(216, 213, 237, 0.38) 68%,
+      rgba(245, 226, 238, 0.5) 100%
+    );
+  animation: frameNebulaDrift 14s ease-in-out infinite alternate;
+}
+
+@keyframes frameNebulaDrift {
+  0% {
+    opacity: 0.92;
+    filter: brightness(1) blur(0px);
+    transform: scale(1);
+  }
+  100% {
+    opacity: 1;
+    filter: brightness(1.07) blur(1px);
+    transform: scale(1.015);
+  }
+}
+
+/* Lớp 2: Kính mờ bán trong suốt và vệt phản chiếu ngọc trai */
+.frame-glass-sheen {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 1;
+  /* Kính mờ nhẹ */
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  /* Ánh phản chiếu ánh sáng rất nhẹ ở mép trên và góc khung */
+  background: linear-gradient(172deg,
+    rgba(255, 255, 255, 0.48) 0%,
+    rgba(244, 242, 248, 0.16) 12%,
+    transparent 30%,
+    rgba(220, 232, 242, 0.08) 75%,
+    rgba(245, 226, 238, 0.22) 100%
+  );
+}
+
+/* Lớp 3: Đường viền mỏng thứ hai mờ phía trong tạo chiều sâu */
+.frame-inner-border {
+  position: absolute;
+  inset: 5px;
+  border-radius: calc(30px - 5px);
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  box-shadow: inset 0 0 14px rgba(255, 255, 255, 0.22);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Lớp 4: Điểm sáng lung linh ở 4 góc khung */
+.frame-corner-sparkle {
+  position: absolute;
+  font-size: 13px;
+  line-height: 1;
+  color: #ffffff;
+  text-shadow: 0 0 6px #ffcce0, 0 0 12px #d8d5ed, 0 0 20px #ffffff;
+  pointer-events: none;
+  z-index: 3;
+  opacity: 0.85;
+  animation: cornerSparkleBlink 3.8s ease-in-out infinite alternate;
+}
+
+.frame-corner-sparkle.sparkle-tl {
+  top: 10px;
+  left: 12px;
+  animation-delay: 0s;
+}
+
+.frame-corner-sparkle.sparkle-tr {
+  top: 10px;
+  right: 12px;
+  animation-delay: 1.2s;
+}
+
+.frame-corner-sparkle.sparkle-bl {
+  bottom: 10px;
+  left: 12px;
+  animation-delay: 2.1s;
+}
+
+.frame-corner-sparkle.sparkle-br {
+  bottom: 10px;
+  right: 12px;
+  animation-delay: 0.7s;
+}
+
+@keyframes cornerSparkleBlink {
+  0% { transform: scale(0.85) rotate(0deg); opacity: 0.6; }
+  100% { transform: scale(1.18) rotate(18deg); opacity: 1; }
+}
+
+/* KHỐI 2 BÊN: PUZZLE TRÁI + LỊCH FANTASY PHẢI */
+.calendar-dual-stage {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 36px;
+  width: 100%;
+  position: relative;
+  z-index: 2; /* Nằm trên lớp nền tinh vân và kính mờ, không bao giờ bị mờ */
+}
+
+/* ====================================================================
+   3. KHU VỰC LỜI CHÚC 20/10 TIẾNG ANH THƯ PHÁP NGHỆ THUẬT (BÊN TRÁI)
+   ==================================================================== */
+.calendar-wish-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  max-width: 360px;
+  min-height: 290px;
+  padding: 16px 20px;
+  box-sizing: border-box;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  user-select: none;
+  z-index: 2;
+}
+
+/* Quầng sáng tinh vân tím hồng mờ ảo dịu nhẹ phía sau chữ */
+.wish-ambient-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 280px;
+  height: 240px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse 65% 60% at 50% 50%,
+    rgba(255, 115, 175, 0.18) 0%,
+    rgba(186, 104, 255, 0.12) 45%,
+    rgba(255, 245, 214, 0.05) 70%,
+    transparent 85%
+  );
+  filter: blur(20px);
+  pointer-events: none;
+  z-index: 0;
+  animation: wishGlowPulse 5.5s ease-in-out infinite alternate;
+}
+
+@keyframes wishGlowPulse {
+  0% {
+    opacity: 0.65;
+    transform: translate(-50%, -50%) scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.08);
+  }
+}
+
+/* Hạt sáng li ti bay lượn nhẹ nhàng xung quanh typography */
+.wish-sparkles-field {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  overflow: visible;
+}
+
+.wish-sparkle {
+  position: absolute;
+  font-size: 11px;
+  line-height: 1;
+  color: #ffffff;
+  text-shadow: 0 0 6px #ffb6c1, 0 0 12px #d8b4fe, 0 0 18px #ffffff;
+  animation: wishSparkleFloat 4s ease-in-out infinite alternate;
+}
+
+.wish-sparkle.sp-1 { top: 12%; left: 8%; font-size: 14px; animation-delay: 0s; color: #ffd6e8; }
+.wish-sparkle.sp-2 { top: 22%; right: 6%; font-size: 10px; animation-delay: 1.2s; color: #fef08a; }
+.wish-sparkle.sp-3 { bottom: 28%; left: 4%; font-size: 12px; animation-delay: 2.3s; color: #e9d5ff; }
+.wish-sparkle.sp-4 { bottom: 14%; right: 10%; font-size: 11px; animation-delay: 0.8s; color: #ffccd5; }
+.wish-sparkle.sp-5 { top: 6%; right: 28%; font-size: 13px; animation-delay: 1.8s; color: #ffffff; }
+.wish-sparkle.sp-6 { bottom: 8%; left: 32%; font-size: 9px; animation-delay: 2.9s; color: #ffe4e6; }
+
+@keyframes wishSparkleFloat {
+  0% {
+    transform: translateY(0) scale(0.85) rotate(0deg);
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-8px) scale(1.25) rotate(15deg);
+    opacity: 0.6;
+  }
+}
+
+/* Cánh hoa trang trí góc trên trái và dưới phải */
+.wish-floating-petals {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.wish-petal {
+  position: absolute;
+  display: block;
+  width: 22px;
+  height: 12px;
+  border-radius: 50% 0 50% 50%;
+  background: linear-gradient(135deg, rgba(255, 230, 240, 0.75), rgba(244, 114, 182, 0.6), rgba(192, 132, 252, 0.45));
+  box-shadow: 0 0 8px rgba(255, 182, 193, 0.5);
+  filter: blur(0.2px);
+  animation: wishPetalDrift 7s ease-in-out infinite alternate;
+}
+
+.wish-petal.petal-tl {
+  top: 8px;
+  left: 12px;
+  transform: rotate(-35deg);
+}
+
+.wish-petal.petal-br {
+  bottom: 12px;
+  right: 15px;
+  width: 18px;
+  height: 10px;
+  transform: rotate(45deg);
+  animation-delay: 3s;
+}
+
+@keyframes wishPetalDrift {
+  0% {
+    transform: translateY(0) rotate(-35deg) scale(0.95);
+  }
+  100% {
+    transform: translateY(7px) rotate(-22deg) scale(1.05);
+  }
+}
+
+/* Khối nội dung Typography chính */
+.wish-art-wrapper {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 1.0s cubic-bezier(0.22, 1, 0.36, 1) 0.3s,
+              transform 1.0s cubic-bezier(0.22, 1, 0.36, 1) 0.3s;
+}
+
+.calendar-screen.active .wish-art-wrapper {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Biểu tượng hoa sen/ngôi sao mở đầu đỉnh lời chúc */
+.wish-top-emblem {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 2px;
+  color: #ffccd5;
+}
+
+.wish-top-emblem .emblem-star {
+  font-size: 10px;
+  color: #ffd6e8;
+  text-shadow: 0 0 8px #ffffff;
+}
+
+.wish-top-emblem .emblem-bloom {
+  font-size: 16px;
+  line-height: 1;
+  background: linear-gradient(135deg, #ffffff 0%, #ff8db3 55%, #c084fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 6px rgba(255, 140, 180, 0.7));
+}
+
+/* Dòng 1: "Happy" thư pháp nghệ thuật mềm mại */
+.wish-word-script {
+  margin: 0;
+  padding: 0;
+  line-height: 1.0;
+}
+
+.wish-word-script .script-happy {
+  display: inline-block;
+  font-family: 'Alex Brush', 'Great Vibes', 'Dancing Script', cursive;
+  font-size: 3.4rem;
+  font-weight: 400;
+  letter-spacing: 1.5px;
+  line-height: 1.05;
+  transform: rotate(-3.5deg);
+  background: linear-gradient(135deg,
+    #ffffff 0%,
+    #fff2f7 25%,
+    #ffa3c4 55%,
+    #f472b6 80%,
+    #fef08a 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.8))
+          drop-shadow(0 0 22px rgba(244, 114, 182, 0.65))
+          drop-shadow(0 0 38px rgba(192, 132, 252, 0.4));
+  margin-bottom: -4px;
+}
+
+/* Tiêu đề chính: "Vietnamese Women's Day" */
+.wish-title-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  margin-top: 4px;
+  margin-bottom: 10px;
+}
+
+.title-vietnamese {
+  font-family: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
+  font-size: 1.95rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 3.5px;
+  line-height: 1.15;
+  background: linear-gradient(135deg,
+    #ffffff 0%,
+    #fff5f8 30%,
+    #fbcfe8 65%,
+    #e9d5ff 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.7))
+          drop-shadow(0 0 18px rgba(244, 114, 182, 0.5));
+}
+
+.title-womens-day {
+  font-family: 'Playfair Display', 'Cormorant Garamond', Georgia, serif;
+  font-size: 2.25rem;
+  font-weight: 700;
+  font-style: italic;
+  letter-spacing: 1.5px;
+  line-height: 1.15;
+  background: linear-gradient(135deg,
+    #ffffff 0%,
+    #ffe4ec 20%,
+    #ff85a2 50%,
+    #e879f9 80%,
+    #fde047 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.85))
+          drop-shadow(0 0 24px rgba(232, 121, 249, 0.6))
+          drop-shadow(0 0 42px rgba(255, 133, 162, 0.35));
+}
+
+/* Đường cong trang trí mảnh phát sáng kèm trái tim */
+.wish-flourish-divider {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 220px;
+  height: 20px;
+  margin: 6px auto 12px;
+}
+
+.wish-divider-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 0 6px rgba(255, 180, 220, 0.7));
+}
+
+.divider-heart-badge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -58%);
+  font-size: 13px;
+  color: #ffffff;
+  text-shadow: 0 0 8px #ff73b6, 0 0 16px #ffffff;
+  animation: wishHeartPulse 2.8s ease-in-out infinite alternate;
+}
+
+@keyframes wishHeartPulse {
+  0% { transform: translate(-50%, -58%) scale(0.9); opacity: 0.85; }
+  100% { transform: translate(-50%, -58%) scale(1.15); opacity: 1; }
+}
+
+/* ====================================================================
+   KHU VỰC 2 CỤM CHỮ DƯỚI ĐƯỜNG KẺ TRANG TRÍ (THEO BỐ CỤC MỚI)
+   Bên trái: "A DAY TO CELEBRATE YOU" (chữ vàng in hoa 2 dòng, 12-14px)
+   Bên phải: "Mỹ Linh" (chữ hồng script mềm mại, 24-28px phát sáng nhẹ)
+   ==================================================================== */
+.wish-tagline,
+.wish-dual-subtitle {
+  margin: 6px auto 0;
+  padding: 0 4px;
+  width: 100%;
+  max-width: 330px;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 16px;
+  box-sizing: border-box;
+}
+
+/* Cụm bên trái: A DAY TO / CELEBRATE YOU */
+.subtitle-left-message {
+  flex: 1 1 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.25;
+}
+
+.subtitle-left-message .message-line {
+  font-family: 'Montserrat', sans-serif;
+  font-size: clamp(11.5px, 1.15vw, 13.5px);
+  font-weight: 600;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: #fef08a;
+  white-space: nowrap;
+  text-shadow: 0 0 8px rgba(254, 240, 138, 0.75),
+               0 0 16px rgba(245, 158, 11, 0.35);
+}
+
+/* Cụm bên phải: Mỹ Linh */
+.subtitle-right-name {
+  flex: 1 1 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.subtitle-right-name .name-text {
+  font-family: 'Dancing Script', 'Caveat', 'Alex Brush', cursive;
+  font-size: clamp(23px, 2.4vw, 27px);
+  font-weight: 700;
+  color: #ff9ebb;
+  letter-spacing: 0.8px;
+  line-height: 1.1;
+  white-space: nowrap;
+  background: linear-gradient(135deg, #ffffff 0%, #ffb3cb 40%, #f472b6 80%, #e879f9 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 8px rgba(255, 158, 187, 0.75))
+          drop-shadow(0 0 16px rgba(217, 70, 239, 0.45));
+}
+
+/* ====================================================================
+   4. TỜ LỊCH FANTASY MA THUẬT (CHUẨN TUYỆT ĐỐI THEO ẢNH THAM KHẢO 2)
+   Nghiêng nhẹ 3D, trong suốt, uốn cong lơ lửng, vòng quỹ đạo ánh sáng 3D
+   ==================================================================== */
+.calendar-paper-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  perspective: 1200px; /* Tạo chiều sâu 3D cho tờ lịch */
+}
+
+/* Vòng quỹ đạo ánh sáng elip PHÍA SAU tờ lịch (z-index: 1) */
+.calendar-orbit-svg.orbit-back {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 480px;
+  height: 420px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 1;
+  overflow: visible;
+}
+
+/* Vòng quỹ đạo ánh sáng elip PHÍA TRƯỚC tờ lịch (z-index: 5) */
+.calendar-orbit-svg.orbit-front {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 480px;
+  height: 420px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 5;
+  overflow: visible;
+}
+
+/* Đường nét elip phát sáng thanh mảnh uốn lượn */
+.orbit-path-glow {
+  fill: none;
+  stroke: url(#orbitGlowPink);
+  stroke-width: 2.2;
+  filter: drop-shadow(0 0 8px rgba(255, 133, 162, 0.9)) drop-shadow(0 0 16px rgba(186, 104, 238, 0.7));
+}
+
+.orbit-path-dashed {
+  fill: none;
+  stroke: url(#orbitGlowSoft);
+  stroke-width: 1.4;
+  stroke-dasharray: 8 10;
+  animation: orbitDashMove 30s linear infinite;
+}
+
+@keyframes orbitDashMove {
+  to { stroke-dashoffset: -300; }
+}
+
+/* Ngôi sao 4 cánh phát sáng rực rỡ ở đỉnh quỹ đạo trên (như ảnh 2) */
+.orbit-star-sparkle {
+  fill: #ffffff;
+  filter: drop-shadow(0 0 10px #ff9ebb) drop-shadow(0 0 18px #ffffff);
+  animation: starSparklePulse 2.4s ease-in-out infinite alternate;
+}
+
+@keyframes starSparklePulse {
+  0% { transform: scale(0.9); opacity: 0.85; }
+  100% { transform: scale(1.3); opacity: 1; }
+}
+
+/* TỜ LỊCH FANTASY CUỘN MA THUẬT: NGHIÊNG NHẸ 3D, TRONG SUỐT, UỐN CONG */
+.calendar-paper.magic-scroll {
+  position: relative;
+  width: 295px;
+  /* Bề mặt hồng tím trong suốt nhẹ pha trắng hồng & tím lavender theo ảnh 2 */
+  background: linear-gradient(168deg,
+    rgba(255, 238, 250, 0.62) 0%,
+    rgba(245, 210, 245, 0.52) 40%,
+    rgba(230, 180, 235, 0.48) 75%,
+    rgba(215, 160, 225, 0.58) 100%
+  );
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  /* Mép uốn cong mềm mại của cuộn giấy */
+  border-radius: 20px 22px 28px 24px;
+  padding: 20px 18px 18px;
+  box-sizing: border-box;
+  /* Viền phát sáng mảnh và bóng đổ sâu */
+  border: 1.5px solid rgba(255, 230, 250, 0.8);
+  box-shadow: 0 16px 45px rgba(25, 8, 45, 0.6),
+              0 0 35px rgba(255, 133, 162, 0.35),
+              inset 0 0 25px rgba(255, 245, 255, 0.75);
+  /* Nghiêng nhẹ tạo phối cảnh 3D bay lơ lửng */
+  transform: rotateZ(-5.5deg) rotateY(4deg) rotateX(6deg);
+  animation: scrollFloatMagic 6s ease-in-out infinite alternate;
+  user-select: none;
+  -webkit-user-select: none;
+  z-index: 3;
+}
+
+@keyframes scrollFloatMagic {
+  0% { transform: rotateZ(-6deg) rotateY(4deg) rotateX(6deg) translateY(0); }
+  100% { transform: rotateZ(-4.8deg) rotateY(5deg) rotateX(7deg) translateY(-8px); }
+}
+
+/* Mép cuộn ống mở ở đỉnh cuộn giấy */
+.scroll-roll-top {
+  position: absolute;
+  top: -8px;
+  left: 6%;
+  width: 88%;
+  height: 16px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(235, 175, 225, 0.85) 0%, rgba(255, 245, 252, 0.98) 50%, rgba(235, 175, 225, 0.85) 100%);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25), 0 0 12px rgba(255, 133, 162, 0.5);
+  z-index: 4;
+}
+
+/* Nếp uốn cong vểnh lên mềm mại ở góc dưới bên trái (như ảnh 2) */
+.scroll-curl-corner {
+  position: absolute;
+  bottom: -4px;
+  left: -4px;
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, rgba(255, 230, 250, 0.95) 0%, rgba(225, 170, 225, 0.8) 100%);
+  border-radius: 0 0 0 22px;
+  box-shadow: 2px -2px 8px rgba(0, 0, 0, 0.25);
+  transform: rotate(-10deg);
+  pointer-events: none;
+  z-index: 4;
+}
+
+/* Header lịch: "Tháng 10" thư pháp lãng mạn */
+.calendar-header {
+  text-align: center;
+  position: relative;
+  z-index: 2;
+  margin-top: 2px;
+  margin-bottom: 4px;
+}
+
+.calendar-title-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.calendar-title {
+  font-family: var(--font-serif);
+  font-size: 1.95rem;
+  font-style: italic;
+  font-weight: 700;
+  color: #721941;
+  letter-spacing: 0.5px;
+  margin: 0;
+  line-height: 1.1;
+  text-shadow: 0 1px 2px rgba(114, 25, 65, 0.18), 0 0 8px rgba(255, 133, 162, 0.35);
+}
+
+.header-sparkle-heart {
+  font-size: 0.85rem;
+  color: #ff3366;
+  filter: drop-shadow(0 0 4px rgba(255, 51, 102, 0.6));
+}
+
+.calendar-year-label {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 3px;
+  color: #8c456c;
+  text-transform: uppercase;
+  margin-top: 1px;
+}
+
+/* Lưới hiển thị các ngày */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px 1px;
+  margin-top: 8px;
+  position: relative;
+  z-index: 2;
+}
+
+.calendar-weekday {
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #6e3b5e;
+  text-align: center;
+  padding: 2px 0 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px dashed rgba(160, 90, 140, 0.25);
+  margin-bottom: 2px;
+}
+
+.calendar-weekday.weekend {
+  color: #b5204d;
+}
+
+.calendar-day {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #3b1e32;
+  text-align: center;
+  height: 29px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.calendar-day.weekend {
+  color: #ad1c46;
+}
+
+.calendar-day.empty {
+  pointer-events: none;
+  visibility: hidden;
+}
+
+/* ====================================================================
+   5. NGÀY 20 THÁNG 10 — KHOANH TRÒN NÉT HỒNG PHÁT SÁNG TINH TẾ
+   Khoanh ôm sát số 20, không che các ngày 13, 19, 21 xung quanh
+   ==================================================================== */
+.calendar-day.day-special {
+  color: #ffffff;
+  font-weight: 700;
+  position: relative;
+  z-index: 4;
+}
+
+.calendar-day.day-special .day-num {
+  position: relative;
+  z-index: 3;
+  color: #721941;
+  text-shadow: 0 0 1px rgba(255, 255, 255, 0.8);
+  transition: color 0.4s ease, transform 0.4s ease;
+}
+
+/* Vòng tròn khoanh SVG tinh tế bao quanh số 20 */
+.day-circle-svg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 32px;
+  height: 32px;
+  transform: translate(-50%, -50%) rotate(-8deg);
+  pointer-events: none;
+  overflow: visible;
+  z-index: 2;
+}
+
+.day-circle-path {
+  fill: rgba(255, 51, 102, 0.12);
+  stroke: #ff1a53;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  /* Chu vi đường tròn/elip ~105px */
+  stroke-dasharray: 110;
+  stroke-dashoffset: 110;
+  transition: stroke-dashoffset 1.1s cubic-bezier(0.4, 0, 0.2, 1),
+              fill 0.5s ease;
+  filter: drop-shadow(0 0 3px rgba(255, 26, 83, 0.65));
+}
+
+/* Bắt đầu vẽ nét khoanh tròn */
+.calendar-day.day-special.drawing .day-circle-path {
+  stroke-dashoffset: 0;
+  fill: rgba(255, 51, 102, 0.22);
+}
+
+/* Vẽ xong: Phát sáng nhẹ nhàng, tinh tế */
+.calendar-day.day-special.marked .day-circle-path {
+  stroke-dashoffset: 0;
+  fill: rgba(255, 51, 102, 0.28);
+  stroke: #ff3366;
+  filter: drop-shadow(0 0 6px rgba(255, 51, 102, 0.9)) drop-shadow(0 0 12px rgba(255, 133, 162, 0.7));
+  animation: circleGlowPulse 1.8s ease-in-out infinite alternate;
+}
+
+@keyframes circleGlowPulse {
+  0% { filter: drop-shadow(0 0 5px rgba(255, 51, 102, 0.8)) drop-shadow(0 0 10px rgba(255, 133, 162, 0.6)); }
+  100% { filter: drop-shadow(0 0 8px rgba(255, 51, 102, 1)) drop-shadow(0 0 16px rgba(255, 150, 180, 0.85)); }
+}
+
+.calendar-day.day-special.marked .day-num {
+  color: #ffffff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  animation: dayNumSubtlePop 1.8s ease-in-out infinite alternate;
+}
+
+@keyframes dayNumSubtlePop {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.1); }
+}
+
+/* ====================================================================
+   5.1 HẠT SÁNG & ĐIỂM LÓE QUỸ ĐẠO ÁNH SÁNG
+   ==================================================================== */
+.orbit-particle {
+  filter: drop-shadow(0 0 5px rgba(255, 180, 220, 0.9)) drop-shadow(0 0 8px rgba(186, 104, 238, 0.8));
+  animation: particleGlowPulse 3.5s ease-in-out infinite alternate;
+}
+
+.p-back-1 { animation-delay: 0.2s; }
+.p-back-2 { animation-delay: 1.2s; }
+.p-back-3 { animation-delay: 2.1s; }
+.p-front-1 { animation-delay: 0.7s; }
+.p-front-2 { animation-delay: 1.8s; }
+.p-front-3 { animation-delay: 2.8s; }
+
+@keyframes particleGlowPulse {
+  0% { transform: scale(0.85); opacity: 0.65; }
+  50% { opacity: 1; filter: drop-shadow(0 0 7px #fff) drop-shadow(0 0 12px #ff73ab); }
+  100% { transform: scale(1.35); opacity: 0.85; }
+}
+
+.orbit-sparkle-flare {
+  animation: flareTwinkle 2.8s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 6px #ffffff) drop-shadow(0 0 10px #ff9ebb);
+}
+
+@keyframes flareTwinkle {
+  0% { transform: translate(450px, 240px) scale(0.8) rotate(0deg); opacity: 0.6; }
+  50% { transform: translate(450px, 240px) scale(1.4) rotate(45deg); opacity: 1; }
+  100% { transform: translate(450px, 240px) scale(0.9) rotate(90deg); opacity: 0.7; }
+}
+
+/* ====================================================================
+   6. BƯỚM PHÁT SÁNG DẠ QUANG (SVG 3D FLAPPING WINGS & DRIFT)
+   Không dùng emoji, tạo bằng SVG đối xứng, phát sáng hồng tím lavender
+   ==================================================================== */
+.magic-butterfly {
+  position: absolute;
+  pointer-events: none;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 600px;
+  filter: drop-shadow(0 0 7px rgba(255, 150, 190, 0.9)) drop-shadow(0 0 15px rgba(186, 104, 238, 0.75));
+  will-change: transform;
+}
+
+.butterfly-wing {
+  position: relative;
+  width: 24px;
+  height: 30px;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.butterfly-wing svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+}
+
+.butterfly-wing.wing-left {
+  transform-origin: right center;
+  animation: wingFlapLeft 0.38s ease-in-out infinite alternate;
+}
+
+.butterfly-wing.wing-right {
+  transform-origin: left center;
+  animation: wingFlapRight 0.38s ease-in-out infinite alternate;
+}
+
+@keyframes wingFlapLeft {
+  0% { transform: rotateY(0deg) rotateZ(0deg); }
+  100% { transform: rotateY(-62deg) rotateZ(-6deg); }
+}
+
+@keyframes wingFlapRight {
+  0% { transform: rotateY(0deg) rotateZ(0deg); }
+  100% { transform: rotateY(62deg) rotateZ(6deg); }
+}
+
+.butterfly-body {
+  position: absolute;
+  width: 3.5px;
+  height: 18px;
+  background: linear-gradient(180deg, #ffffff 0%, #ff6da8 40%, #762a63 100%);
+  border-radius: 999px;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.95);
+  z-index: 3;
+}
+
+.butterfly-body::before,
+.butterfly-body::after {
+  content: "";
+  position: absolute;
+  top: -4px;
+  width: 1px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 1px;
+}
+
+.butterfly-body::before {
+  left: -2px;
+  transform: rotate(-25deg);
+}
+
+.butterfly-body::after {
+  right: -2px;
+  transform: rotate(25deg);
+}
+
+/* Vị trí và animation bay lượn của 3 con bướm */
+/* Bướm 1: Góc trên bên trái tờ lịch */
+.butterfly-top-left {
+  top: -18px;
+  left: -32px;
+  transform: scale(0.95) rotate(-15deg);
+  animation: butterflyPath1 7s ease-in-out infinite alternate;
+}
+
+@keyframes butterflyPath1 {
+  0% { transform: translate(0, 0) scale(0.95) rotate(-16deg); }
+  35% { transform: translate(8px, -12px) scale(1) rotate(-8deg); }
+  70% { transform: translate(16px, -4px) scale(0.92) rotate(-12deg); }
+  100% { transform: translate(6px, 8px) scale(0.96) rotate(-20deg); }
+}
+
+/* Bướm 2: Cạnh dưới bên trái tờ lịch (gần góc uốn cong) */
+.butterfly-bottom-left {
+  bottom: 24px;
+  left: -38px;
+  transform: scale(0.85) rotate(12deg);
+  animation: butterflyPath2 8.5s ease-in-out infinite alternate;
+}
+
+@keyframes butterflyPath2 {
+  0% { transform: translate(0, 0) scale(0.85) rotate(10deg); }
+  40% { transform: translate(-8px, -14px) scale(0.9) rotate(18deg); }
+  75% { transform: translate(6px, -24px) scale(0.82) rotate(6deg); }
+  100% { transform: translate(-4px, 4px) scale(0.86) rotate(14deg); }
+}
+
+/* Bướm 3: Mép giữa bên trái bay vòng lượn nhẹ nhàng */
+.butterfly-mid-left {
+  top: 42%;
+  left: -28px;
+  transform: scale(0.78) rotate(4deg);
+  animation: butterflyPath3 6.2s ease-in-out infinite alternate;
+}
+
+@keyframes butterflyPath3 {
+  0% { transform: translate(0, 0) scale(0.78) rotate(2deg); }
+  50% { transform: translate(10px, 8px) scale(0.84) rotate(-6deg); }
+  100% { transform: translate(-6px, -10px) scale(0.75) rotate(8deg); }
+}
+
+/* ====================================================================
+   7. CỤM HOA HỒNG & HOA NHỎ TRANG TRÍ (GÓC DƯỚI BÊN PHẢI & QUỸ ĐẠO)
+   Hòa vào tờ lịch, có bóng đổ, tuyệt đối không che số 20, 24, 25, 31
+   ==================================================================== */
+.calendar-decor-bouquet {
+  position: absolute;
+  /* Lùi hẳn ra mép ngoài góc dưới bên phải, ôm cung tròn cuộn giấy */
+  bottom: -18px;
+  right: -28px;
+  width: 90px;
+  height: 90px;
+  pointer-events: none;
+  z-index: 6;
+  filter: drop-shadow(0 6px 16px rgba(18, 5, 30, 0.65)) drop-shadow(0 0 12px rgba(255, 133, 162, 0.45));
+}
+
+/* Đóa hồng chính màu hồng phấn */
+.bouquet-flower-main {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 66px;
+  height: 66px;
+  object-fit: contain;
+  display: block;
+  transform: rotate(-8deg);
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35)) brightness(1.04);
+  animation: flowerBreathe 5s ease-in-out infinite alternate;
+}
+
+/* Đóa hoa nhỏ tím pastel nép bên dưới */
+.bouquet-flower-accent {
+  position: absolute;
+  bottom: -4px;
+  right: 42px;
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  display: block;
+  transform: rotate(24deg);
+  filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.4)) hue-rotate(20deg) brightness(1.08);
+  animation: flowerBreathe 5.8s ease-in-out infinite alternate-reverse;
+}
+
+/* Đóa hoa nhỏ phớt trắng kem điểm xuyết */
+.bouquet-flower-mini {
+  position: absolute;
+  bottom: 40px;
+  right: 2px;
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  display: block;
+  transform: rotate(-28deg);
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.3)) brightness(1.1);
+  opacity: 0.92;
+}
+
+@keyframes flowerBreathe {
+  0% { transform: scale(0.98) rotate(-8deg); }
+  100% { transform: scale(1.03) rotate(-5deg); }
+}
+
+/* Hoa nhỏ trang trí nép dọc theo vòng quỹ đạo */
+.orbit-decor-flower {
+  position: absolute;
+  pointer-events: none;
+  z-index: 6;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.45)) drop-shadow(0 0 8px rgba(186, 104, 238, 0.5));
+}
+
+.flower-orbit-bottom {
+  bottom: -8px;
+  left: 36%;
+  width: 38px;
+  height: 38px;
+  transform: rotate(-18deg);
+  animation: orbitFlowerSway 6s ease-in-out infinite alternate;
+}
+
+.orbit-mini-flower-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+@keyframes orbitFlowerSway {
+  0% { transform: rotate(-22deg) scale(0.96); }
+  100% { transform: rotate(-14deg) scale(1.04); }
+}
+
+/* ====================================================================
+   8. HỆ THỐNG CÁNH HOA BAY TRONG KHÔNG GIAN (16 CÁNH HOA ĐA TẦNG)
+   Màu sắc: hồng phấn, hồng đào, tím lavender, trắng hồng
+   Bay lượn uốn lượn, xoay 3D dọc quỹ đạo, mờ dần rồi hiện lại
+   ==================================================================== */
+.calendar-petals-field {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.fantasy-petal {
+  position: absolute;
+  display: block;
+  pointer-events: none;
+  border-radius: 65% 35% 75% 25% / 45% 65% 35% 55%;
+  will-change: transform, opacity;
+}
+
+/* Lớp cánh hoa phía sau: z-index: 2, mờ nhẹ, trôi xa */
+.petal-back {
+  z-index: 2;
+  filter: blur(0.4px) drop-shadow(0 0 5px rgba(255, 150, 190, 0.5));
+}
+
+/* Lớp cánh hoa phía trước: z-index: 7, rõ nét, viền phát sáng nhẹ */
+.petal-front {
+  z-index: 7;
+  filter: drop-shadow(0 2px 6px rgba(35, 10, 45, 0.4)) drop-shadow(0 0 8px rgba(255, 170, 210, 0.65));
+}
+
+/* Chi tiết 16 cánh hoa phân bố quanh tờ lịch và dọc theo quỹ đạo */
+/* Cánh 1: Hồng phấn, góc trên trái phía sau */
+.petal-1 {
+  top: 20px;
+  left: -20px;
+  width: 14px;
+  height: 18px;
+  background: linear-gradient(135deg, #ffffff 0%, #ffb6d5 60%, #e08beb 100%);
+  animation: petalDrift1 9s ease-in-out infinite;
+}
+
+/* Cánh 2: Tím lavender, góc trên phải phía sau */
+.petal-2 {
+  top: 45px;
+  right: -25px;
+  width: 12px;
+  height: 16px;
+  background: linear-gradient(120deg, #ffffff 0%, #d89eff 65%, #ff8aba 100%);
+  animation: petalDrift2 11s ease-in-out infinite 1.5s;
+}
+
+/* Cánh 3: Hồng đào, bên trái giữa */
+.petal-3 {
+  top: 55%;
+  left: -35px;
+  width: 13px;
+  height: 17px;
+  background: linear-gradient(140deg, #fff0f5 0%, #ffa3c4 55%, #bd73f8 100%);
+  animation: petalDrift3 8.5s ease-in-out infinite 0.8s;
+}
+
+/* Cánh 4: Trắng hồng, góc dưới trái */
+.petal-4 {
+  bottom: 25px;
+  left: -15px;
+  width: 11px;
+  height: 15px;
+  background: linear-gradient(110deg, #ffffff 10%, #ffd0e3 70%, #d49fff 100%);
+  animation: petalDrift1 10s ease-in-out infinite 2.2s;
+}
+
+/* Cánh 5: Tím phớt, đỉnh trên quỹ đạo */
+.petal-5 {
+  top: -15px;
+  left: 45%;
+  width: 12px;
+  height: 15px;
+  background: linear-gradient(135deg, #ffffff 0%, #e5b3ff 60%, #ff8fb8 100%);
+  animation: petalDrift4 9.5s ease-in-out infinite 3s;
+}
+
+/* Cánh 6: Hồng pastel, mép phải dưới */
+.petal-6 {
+  bottom: 60px;
+  right: -30px;
+  width: 14px;
+  height: 19px;
+  background: linear-gradient(130deg, #ffffff 0%, #ffa8cb 60%, #ba6cf5 100%);
+  animation: petalDrift2 12s ease-in-out infinite 0.5s;
+}
+
+/* Cánh 7: Cánh to rõ nét góc trên bên trái, trôi gần bướm */
+.petal-7 {
+  top: -8px;
+  left: -42px;
+  width: 18px;
+  height: 24px;
+  background: linear-gradient(135deg, #ffffff 0%, #ff9ebb 55%, #c875ff 100%);
+  animation: petalDriftUp 8s ease-in-out infinite;
+}
+
+/* Cánh 8: Cánh hồng đào trôi dọc quỹ đạo trên */
+.petal-8 {
+  top: 15px;
+  right: 15px;
+  width: 15px;
+  height: 20px;
+  background: linear-gradient(145deg, #ffffff 0%, #ff8fb0 60%, #d67bff 100%);
+  animation: petalDriftDown 10.5s ease-in-out infinite 1.2s;
+}
+
+/* Cánh 9: Cánh tím lavender lơ lửng mép phải tờ lịch */
+.petal-9 {
+  top: 38%;
+  right: -32px;
+  width: 16px;
+  height: 22px;
+  background: linear-gradient(125deg, #ffffff 0%, #c88aff 60%, #ff7cae 100%);
+  animation: petalDrift3 9.2s ease-in-out infinite 2s;
+}
+
+/* Cánh 10: Cánh nhỏ phớt trắng hồng bay gần cụm hoa */
+.petal-10 {
+  bottom: 45px;
+  right: 48px;
+  width: 13px;
+  height: 17px;
+  background: linear-gradient(135deg, #ffffff 10%, #ffb6d3 65%, #c480ff 100%);
+  animation: petalDriftUp 7.5s ease-in-out infinite 0.7s;
+}
+
+/* Cánh 11: Cánh hồng phấn trôi từ dưới lên */
+.petal-11 {
+  bottom: -22px;
+  left: 20%;
+  width: 16px;
+  height: 21px;
+  background: linear-gradient(140deg, #ffffff 0%, #ffa5c9 50%, #af66ff 100%);
+  animation: petalDriftUp 9s ease-in-out infinite 3.5s;
+}
+
+/* Cánh 12: Cánh tím hồng uốn cong cạnh trái */
+.petal-12 {
+  top: 70%;
+  left: -26px;
+  width: 15px;
+  height: 20px;
+  background: linear-gradient(130deg, #ffffff 0%, #e294ff 60%, #ff75a5 100%);
+  animation: petalDrift1 10.2s ease-in-out infinite 1.8s;
+}
+
+/* Cánh 13: Cánh đào bay vòng qua mép trên */
+.petal-13 {
+  top: -24px;
+  left: 25%;
+  width: 14px;
+  height: 19px;
+  background: linear-gradient(150deg, #ffffff 0%, #ff9ebb 65%, #e18eff 100%);
+  animation: petalDrift4 8.8s ease-in-out infinite 2.6s;
+}
+
+/* Cánh 14: Cánh hồng phấn nép dưới chân cuộn giấy */
+.petal-14 {
+  bottom: -15px;
+  right: 15px;
+  width: 14px;
+  height: 18px;
+  background: linear-gradient(135deg, #ffffff 0%, #ffadc8 60%, #b86bfe 100%);
+  animation: petalDriftDown 11s ease-in-out infinite 0.3s;
+}
+
+/* Cánh 15: Cánh trắng ngà viền hồng bay cao */
+.petal-15 {
+  top: 80px;
+  left: -48px;
+  width: 13px;
+  height: 17px;
+  background: linear-gradient(120deg, #ffffff 20%, #ffd4e5 70%, #d89eff 100%);
+  animation: petalDrift2 9.8s ease-in-out infinite 4s;
+}
+
+/* Cánh 16: Cánh tím dịu nhẹ phía góc dưới bên phải */
+.petal-16 {
+  bottom: -28px;
+  right: -36px;
+  width: 17px;
+  height: 23px;
+  background: linear-gradient(145deg, #ffffff 0%, #d48aff 55%, #ff7ea8 100%);
+  animation: petalDriftUp 10.5s ease-in-out infinite 2.8s;
+}
+
+/* CÁC KEYFRAMES CHUYỂN ĐỘNG CÁNH HOA BAY TRONG KHÔNG GIAN */
+@keyframes petalDrift1 {
+  0% { transform: translate(0, 0) rotate(0deg) scale(0.9); opacity: 0.3; }
+  30% { opacity: 0.85; }
+  70% { opacity: 0.75; }
+  100% { transform: translate(18px, 28px) rotate(80deg) scale(1.05); opacity: 0.3; }
+}
+
+@keyframes petalDrift2 {
+  0% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 0.35; }
+  40% { opacity: 0.9; }
+  80% { opacity: 0.7; }
+  100% { transform: translate(-22px, 32px) rotate(-90deg) scale(0.92); opacity: 0.35; }
+}
+
+@keyframes petalDrift3 {
+  0% { transform: translate(0, 0) rotate(15deg) scale(0.95); opacity: 0.4; }
+  50% { transform: translate(16px, -18px) rotate(60deg) scale(1.08); opacity: 0.85; }
+  100% { transform: translate(28px, -35px) rotate(120deg) scale(0.95); opacity: 0.35; }
+}
+
+@keyframes petalDrift4 {
+  0% { transform: translate(0, 0) rotate(-20deg) scale(0.9); opacity: 0.3; }
+  50% { transform: translate(-14px, 16px) rotate(40deg) scale(1.04); opacity: 0.85; }
+  100% { transform: translate(-26px, 34px) rotate(100deg) scale(0.9); opacity: 0.3; }
+}
+
+@keyframes petalDriftUp {
+  0% { transform: translate(0, 15px) rotate(-10deg) scale(0.85); opacity: 0.2; }
+  35% { opacity: 0.9; }
+  70% { opacity: 0.8; }
+  100% { transform: translate(12px, -45px) rotate(75deg) scale(1.05); opacity: 0.2; }
+}
+
+@keyframes petalDriftDown {
+  0% { transform: translate(0, -15px) rotate(20deg) scale(0.9); opacity: 0.25; }
+  40% { opacity: 0.88; }
+  75% { opacity: 0.75; }
+  100% { transform: translate(-15px, 42px) rotate(-65deg) scale(1.02); opacity: 0.25; }
+}
+
+/* ====================================================================
+   7. PHẦN DƯỚI: NÚT TIẾP TỤC CÂN ĐỐI (ĐÃ XÓA KHUNG LỜI CHÚC)
+   ==================================================================== */
+.calendar-bottom-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 24px;
+  z-index: 100;
+  position: relative;
+  width: 100%;
+  pointer-events: auto !important;
+}
+
+/* NÚT TIẾP TỤC */
+.calendar-continue-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 38px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255, 133, 162, 0.7);
+  background: linear-gradient(135deg, rgba(28, 10, 48, 0.92) 0%, rgba(55, 18, 85, 0.96) 100%);
+  color: #ff9ebb;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  box-shadow: 0 0 24px rgba(181, 23, 158, 0.45), inset 0 0 12px rgba(255, 133, 162, 0.2);
+  cursor: pointer !important;
+  user-select: none;
+  -webkit-user-select: none;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: 101;
+  position: relative;
+  transform: translateY(10px) scale(0.96);
+  transition: opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+              visibility 0.35s,
+              background-color 0.3s ease,
+              border-color 0.3s ease,
+              box-shadow 0.3s ease,
+              color 0.3s ease;
+}
+
+.calendar-continue-btn.visible {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  transform: translateY(0) scale(1) !important;
+}
+
+.calendar-continue-btn.visible:hover {
+  border-color: #ff85a2;
+  background: linear-gradient(135deg, rgba(45, 16, 75, 0.98) 0%, rgba(75, 22, 115, 1) 100%);
+  box-shadow: 0 0 35px rgba(255, 133, 162, 0.75), inset 0 0 16px rgba(255, 133, 162, 0.4);
+  transform: translateY(-2px) scale(1.04);
+  color: #ffffff;
+}
+
+.calendar-continue-btn.visible:active {
+  transform: translateY(0) scale(0.97);
+}
+
+/* ====================================================================
+   8. ĐÁP ỨNG THIẾT BỊ DI ĐỘNG (MOBILE RESPONSIVE)
+   Trên điện thoại: Puzzle ở trên -> Lịch ở giữa -> Nút ở dưới
+   ==================================================================== */
+@media (max-width: 767px) {
+  :root {
+    --mobile-cal-width: min(280px, calc(100vw - 32px));
+    --mobile-puzzle-width: calc(var(--mobile-cal-width) * 0.6667);
+  }
+
+  .calendar-screen {
+    align-items: flex-start;
+    padding: 12px 0 28px;
+  }
+
+  .calendar-main-container {
+    padding: 6px 8px 24px;
+    max-width: 100vw;
+    margin: 0 auto;
+    min-height: min-content;
+  }
+
+  /* Khung tranh fantasy chung trên điện thoại: tự điều chỉnh chiều cao, bao quanh puzzle & lịch dọc */
+  .fantasy-artwork-frame {
+    width: min(340px, calc(100vw - 20px));
+    max-width: 100%;
+    padding: 18px 10px 18px;
+    border-radius: 22px;
+    margin: 0 auto;
+    box-sizing: border-box;
+    height: auto;
+  }
+
+  .frame-inner-border {
+    inset: 4px;
+    border-radius: calc(22px - 4px);
+  }
+
+  .frame-corner-sparkle {
+    font-size: 11px;
+  }
+  .frame-corner-sparkle.sparkle-tl { top: 7px; left: 9px; }
+  .frame-corner-sparkle.sparkle-tr { top: 7px; right: 9px; }
+  .frame-corner-sparkle.sparkle-bl { bottom: 7px; left: 9px; }
+  .frame-corner-sparkle.sparkle-br { bottom: 7px; right: 9px; }
+
+  .calendar-dual-stage {
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+  }
+
+  /* Khu vực Lời chúc 20/10 trên mobile: cân đối, nghệ thuật, không tràn dòng */
+  .calendar-wish-container {
+    width: 100%;
+    max-width: 320px;
+    min-height: auto;
+    padding: 8px 10px 4px;
+    margin: 0 auto;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .wish-word-script .script-happy {
+    font-size: 2.7rem;
+    letter-spacing: 1px;
+    margin-bottom: -2px;
+  }
+
+  .title-vietnamese {
+    font-size: 1.5rem;
+    letter-spacing: 2.5px;
+  }
+
+  .title-womens-day {
+    font-size: 1.75rem;
+    letter-spacing: 1.0px;
+  }
+
+  .wish-flourish-divider {
+    width: 180px;
+    height: 16px;
+    margin: 4px auto 8px;
+  }
+
+  .wish-tagline,
+  .wish-dual-subtitle {
+    max-width: 290px;
+    gap: 12px;
+    margin-top: 4px;
+    padding: 0 2px;
+  }
+
+  .subtitle-left-message .message-line {
+    font-size: clamp(10.5px, 2.8vw, 12.5px);
+    letter-spacing: 1.2px;
+  }
+
+  .subtitle-right-name .name-text {
+    font-size: clamp(20px, 5.2vw, 24px);
+  }
+
+  .wish-ambient-glow {
+    width: 220px;
+    height: 180px;
+  }
+
+  .calendar-paper-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 4px 0;
+  }
+
+  /* Tờ lịch: thành phần chính, rộng hơn puzzle và đủ lớn để đọc rõ */
+  .calendar-paper.magic-scroll {
+    width: var(--mobile-cal-width, 280px);
+    box-sizing: border-box;
+    padding: 18px 14px 16px;
+    transform: rotateZ(-4deg) rotateY(2deg);
+  }
+
+  .calendar-title {
+    font-size: 1.75rem;
+  }
+
+  .calendar-day {
+    height: 27px;
+    font-size: 0.78rem;
+  }
+
+  .day-circle-svg {
+    width: 29px;
+    height: 29px;
+  }
+
+  .calendar-decor-bouquet {
+    width: 72px;
+    height: 72px;
+    bottom: -15px;
+    right: -18px;
+  }
+
+  .bouquet-flower-main {
+    width: 52px;
+    height: 52px;
+  }
+
+  .bouquet-flower-accent {
+    width: 36px;
+    height: 36px;
+    right: 32px;
+  }
+
+  .bouquet-flower-mini {
+    width: 28px;
+    height: 28px;
+    bottom: 32px;
+  }
+
+  .butterfly-top-left {
+    transform: scale(0.75) rotate(-15deg);
+    top: -12px;
+    left: -18px;
+  }
+
+  .butterfly-bottom-left {
+    transform: scale(0.7) rotate(10deg);
+    bottom: 15px;
+    left: -22px;
+  }
+
+  .butterfly-mid-left {
+    transform: scale(0.65) rotate(4deg);
+    left: -18px;
+  }
+
+  .flower-orbit-bottom {
+    width: 30px;
+    height: 30px;
+    bottom: -6px;
+    left: 32%;
+  }
+
+  .calendar-orbit-svg {
+    transform: translate(-50%, -50%) scale(0.72);
+  }
+
+  /* Nút "Tiếp tục" nằm dưới lịch, không bị chồng lấn */
+  .calendar-bottom-bar {
+    margin-top: 18px;
+    margin-bottom: 8px;
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  .calendar-continue-btn {
+    padding: 9px 30px;
+    font-size: 0.9rem;
+  }
+}
+
+/* Hỗ trợ giảm chuyển động (prefers-reduced-motion) */
+@media (prefers-reduced-motion: reduce) {
+  .calendar-paper.magic-scroll,
+  .magic-butterfly,
+  .butterfly-wing,
+  .fantasy-petal,
+  .bouquet-flower-main,
+  .bouquet-flower-accent,
+  .orbit-decor-flower,
+  .orbit-particle,
+  .orbit-sparkle-flare,
+  .orbit-path-dashed,
+  .orbit-star-sparkle,
+  .wish-ambient-glow,
+  .wish-sparkle,
+  .wish-petal,
+  .divider-heart-badge {
+    animation: none !important;
+  }
+  .day-circle-path {
+    transition: stroke-dashoffset 0.4s ease;
+  }
+  .wish-art-wrapper {
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+}

@@ -1,0 +1,2326 @@
+/**
+ * ====================================================================
+ * GIAO DIỆN PHONG BÌ 3D & THIỆP CHÚC MỪNG TƯƠNG TÁC (LETTER.CSS)
+ * Chuẩn hóa 3 trạng thái theo ảnh tham chiếu:
+ *   Trạng thái 1: Phong bì đóng kín chính giữa màn hình (Cosmic Orbit + Hào quang 3D)
+ *   Trạng thái 2: Nhấn lần 1 -> Nắp mở, thiệp trồi lên lộ "Happy Women's Day ♡"
+ *   Trạng thái 3: Nhấn lần 2 -> Thiệp mở rộng toàn màn hình thành bức thư hoàn chỉnh
+ * ====================================================================
+ */
+
+/* --------------------------------------------------------------------
+   1. NÚT CHUYỂN TỪ QUẢ CẦU 3D SANG MÓN QUÀ (SPHERE ACTION BAR)
+   -------------------------------------------------------------------- */
+.sphere-action-bar {
+  position: fixed;
+  bottom: clamp(24px, 5vh, 44px);
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  z-index: 38;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0.8s;
+}
+
+.sphere-action-bar.visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+
+.sphere-to-letter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 28px;
+  background: linear-gradient(135deg, rgba(255, 182, 218, 0.92) 0%, rgba(216, 180, 254, 0.9) 100%);
+  color: #311847;
+  font-family: var(--font-body, 'Montserrat', sans-serif);
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  border: 1.5px solid rgba(255, 255, 255, 0.9);
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 0 25px rgba(232, 180, 254, 0.65),
+    0 8px 24px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.35s ease,
+    background 0.35s ease;
+  user-select: none;
+  -webkit-user-select: none;
+  animation: modernBtnGlow 2.8s ease-in-out infinite alternate;
+}
+
+.sphere-to-letter-btn:hover {
+  transform: scale(1.04) translateY(-2px);
+  box-shadow: 0 0 35px rgba(255, 192, 230, 0.85),
+    0 12px 30px rgba(0, 0, 0, 0.4);
+  background: linear-gradient(135deg, rgba(255, 200, 230, 0.98) 0%, rgba(228, 198, 255, 0.95) 100%);
+}
+
+.sphere-to-letter-btn:active {
+  transform: scale(0.98);
+}
+
+@keyframes modernBtnGlow {
+  0% {
+    box-shadow: 0 0 20px rgba(232, 180, 254, 0.5), 0 6px 18px rgba(0, 0, 0, 0.25);
+  }
+
+  100% {
+    box-shadow: 0 0 32px rgba(255, 175, 215, 0.8), 0 10px 26px rgba(181, 23, 158, 0.35);
+  }
+}
+
+/* --------------------------------------------------------------------
+   2. KHAI BÁO BIẾN MÀU SẮC & THIẾT KẾ CHO GIAI ĐOẠN CUỐI
+   -------------------------------------------------------------------- */
+:root {
+  /* Phong bì: Hồng phấn, ngọc trai & tím lavender chuẩn ảnh tham chiếu */
+  --env-rose-top: #e49eb7;
+  --env-rose-mid: #cf829f;
+  --env-rose-base: #b26584;
+  --env-rose-shadow: #85375d;
+  --env-inner-lining: #4a1532;
+  --env-inner-sheen: #632043;
+  --env-gold-champagne: #f6d89f;
+  --env-gold-border: rgba(255, 230, 185, 0.85);
+  --env-gold-glow: rgba(255, 225, 175, 0.4);
+
+  /* Con dấu sáp & Ruy băng lụa tím mận */
+  --seal-wine-bright: #ad224e;
+  --seal-wine-mid: #7e1236;
+  --seal-wine-deep: #4d071e;
+  --ribbon-purple-silk: #4a1334;
+  --ribbon-purple-deep: #2f0820;
+
+  /* Giấy thư: Trắng kem & ngọc trai pha hồng nhạt */
+  --paper-cream-start: #ffffff;
+  --paper-cream-mid: #fffcf8;
+  --paper-cream-end: #fff5f8;
+  --paper-gold-border: rgba(226, 186, 145, 0.75);
+  --paper-inner-line: rgba(235, 196, 175, 0.45);
+
+  /* Font chữ & Màu chữ */
+  --font-cursive: 'Great Vibes', 'Caveat', 'Dancing Script', cursive;
+  --font-serif: 'Playfair Display', 'Cormorant Garamond', serif;
+  --font-body: 'Montserrat', sans-serif;
+  --text-primary-wine: #3d0d1e;
+  --text-title-wine: #741635;
+}
+
+/* --------------------------------------------------------------------
+   3. MÀN HÌNH CHÍNH GIAI ĐOẠN CUỐI (#letter-screen)
+   -------------------------------------------------------------------- */
+.letter-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 46;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  perspective: 1400px;
+  overflow: hidden;
+  box-sizing: border-box;
+  padding: 20px 16px;
+  transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0.8s;
+  -webkit-overflow-scrolling: touch;
+}
+
+.letter-screen.active {
+  display: flex !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+/* Hoạt ảnh xuất hiện mềm mại khi chuyển cảnh từ quả cầu 3D */
+.letter-screen.entering {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.letter-screen.entering .envelope-wrapper {
+  animation: envelopeEntrance 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
+}
+
+.letter-screen.entering .envelope-prompt {
+  animation: promptEntrance 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
+}
+
+.letter-screen.entering .letter-ambient-backdrop {
+  animation: auraEntrance 0.85s ease forwards !important;
+}
+
+.letter-screen.entering .letter-orbits-layer {
+  animation: orbitsEntrance 0.85s ease forwards !important;
+}
+
+@keyframes envelopeEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(28px) scale(0.92);
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes promptEntrance {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(16px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes auraEntrance {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.75);
+  }
+  100% {
+    opacity: 0.95;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes orbitsEntrance {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.85);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.letter-screen.fade-out {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: opacity 0.6s ease;
+}
+
+/* Hào quang ambient tím hồng vũ trụ */
+.letter-ambient-backdrop {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(94vw, 850px);
+  height: min(94vh, 850px);
+  background: radial-gradient(circle,
+      rgba(236, 72, 153, 0.22) 0%,
+      rgba(168, 85, 247, 0.16) 40%,
+      rgba(99, 102, 241, 0.08) 65%,
+      transparent 80%);
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 1;
+  animation: ambientAuraBreath 8s ease-in-out infinite alternate;
+}
+
+@keyframes ambientAuraBreath {
+  0% {
+    transform: translate(-50%, -50%) scale(0.92);
+    opacity: 0.7;
+  }
+
+  100% {
+    transform: translate(-50%, -50%) scale(1.08);
+    opacity: 1;
+  }
+}
+
+/* --------------------------------------------------------------------
+   4. HỆ THỐNG QUỸ ĐẠO ÁNH SÁNG COSMIC 3D QUANH PHONG BÌ (COSMIC ORBITS)
+   - Đan xen đa tầng: Nửa trên lượn phía sau phong bì (z-index: 3)
+   - Nửa dưới lượn vắt qua phía trước phong bì (z-index: 15) tạo chiều sâu 3D chân thực
+   - Hạt sáng, tia sáng laser và cánh hoa di chuyển có quy luật dọc đường quỹ đạo
+   -------------------------------------------------------------------- */
+.letter-orbits-layer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(96vw, 920px);
+  height: min(72vh, 480px);
+  pointer-events: none;
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.letter-orbits-back {
+  z-index: 3;
+  /* Nằm PHÍA SAU phong bì và thiệp */
+  clip-path: polygon(0 0, 100% 0, 100% 53%, 0 53%);
+}
+
+.letter-orbits-front {
+  z-index: 15;
+  /* Nằm PHÍA TRƯỚC phong bì */
+  clip-path: polygon(0 47%, 100% 47%, 100% 100%, 0 100%);
+}
+
+.cosmic-orbit-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+}
+
+/* Tia sáng di chuyển liên tục dọc theo quỹ đạo */
+.orbit-light-beam {
+  stroke-dasharray: 130 770;
+  animation: orbitBeamTravel 8s linear infinite;
+}
+
+.beam-back-1 {
+  animation-duration: 8s;
+}
+
+.beam-front-1 {
+  animation-duration: 8s;
+}
+
+@keyframes orbitBeamTravel {
+  from {
+    stroke-dashoffset: 900;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Các điểm sao phát sáng tĩnh có hiệu ứng nhấp nháy trên quỹ đạo */
+.orbit-flare-star {
+  font-size: 16px;
+  fill: #fff4db;
+  filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.9)) drop-shadow(0 0 18px rgba(244, 114, 182, 0.95));
+  animation: flareStarBlink 3.6s ease-in-out infinite alternate;
+  user-select: none;
+  pointer-events: none;
+}
+
+.star-1 {
+  animation-delay: 0s;
+  font-size: 18px;
+}
+
+.star-2 {
+  animation-delay: 1.4s;
+  font-size: 15px;
+}
+
+.star-3 {
+  animation-delay: 0.7s;
+  font-size: 17px;
+}
+
+.star-4 {
+  animation-delay: 2.1s;
+  font-size: 19px;
+}
+
+.star-5 {
+  animation-delay: 1.1s;
+  font-size: 14px;
+}
+
+.star-6 {
+  animation-delay: 2.8s;
+  font-size: 16px;
+}
+
+@keyframes flareStarBlink {
+  0% {
+    opacity: 0.45;
+    transform: scale(0.85);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.35) rotate(15deg);
+  }
+
+  100% {
+    opacity: 0.55;
+    transform: scale(0.9);
+  }
+}
+
+/* --------------------------------------------------------------------
+   5. CÁC HẠT SÁNG & CÁNH HOA BAY TRONG KHÔNG GIAN
+   -------------------------------------------------------------------- */
+.letter-particles-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 3;
+  overflow: hidden;
+}
+
+.letter-floating-item {
+  position: absolute;
+  opacity: 0;
+  user-select: none;
+  pointer-events: none;
+  animation: floatCosmicItem 9.5s ease-in-out infinite;
+}
+
+.item-heart {
+  color: #ff85a2;
+  font-size: 15px;
+  filter: drop-shadow(0 0 8px rgba(255, 133, 162, 0.75));
+}
+
+.item-sparkle {
+  color: #fef08a;
+  font-size: 13px;
+  filter: drop-shadow(0 0 8px rgba(254, 240, 138, 0.85));
+}
+
+.item-petal {
+  display: inline-block;
+  width: 17px;
+  height: 23px;
+  background: radial-gradient(circle at 35% 30%, #ffffff 0%, #ffd6e8 35%, #f472b6 75%, #a855f7 100%);
+  border-radius: 50% 50% 65% 35% / 60% 35% 65% 40%;
+  opacity: 0.88;
+  filter: drop-shadow(0 0 8px rgba(244, 114, 182, 0.75)) drop-shadow(0 0 16px rgba(168, 85, 247, 0.45));
+}
+
+@keyframes floatCosmicItem {
+  0% {
+    transform: translateY(25px) rotate(0deg) scale(0.85);
+    opacity: 0;
+  }
+
+  15% {
+    opacity: 0.85;
+  }
+
+  85% {
+    opacity: 0.85;
+  }
+
+  100% {
+    transform: translateY(-90px) rotate(260deg) scale(1.08);
+    opacity: 0;
+  }
+}
+
+/* --------------------------------------------------------------------
+   6. KHUNG CẢNH PHONG BÌ & THIỆP TRUNG TÂM MÀN HÌNH
+   -------------------------------------------------------------------- */
+.letter-scene-container {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  min-height: 440px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  margin: auto;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition: opacity 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Dòng hướng dẫn bên dưới phong bì */
+.envelope-prompt {
+  position: absolute;
+  bottom: clamp(-72px, -11vh, -86px);
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 15;
+  opacity: 1;
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.prompt-text-top {
+  font-family: var(--font-body);
+  font-size: clamp(0.92rem, 1.8vw, 1.05rem);
+  color: #fce7f3;
+  margin: 0 0 4px;
+  letter-spacing: 0.3px;
+  text-shadow: 0 0 12px rgba(244, 114, 182, 0.65), 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+.prompt-text-bottom {
+  font-family: var(--font-cursive);
+  font-size: clamp(1.22rem, 2.5vw, 1.48rem);
+  color: #fed7e2;
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-shadow: 0 0 16px rgba(236, 72, 153, 0.8), 0 2px 8px rgba(0, 0, 0, 0.5);
+  animation: promptPulse 2.4s ease-in-out infinite alternate;
+}
+
+@keyframes promptPulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+
+  100% {
+    transform: scale(1.06);
+    opacity: 1;
+  }
+}
+
+/* --------------------------------------------------------------------
+   7. KHỐI PHONG BÌ 3D HỒNG PHẤN PHÁT SÁNG NẰM CHÍNH GIỮA MÀN HÌNH
+   -------------------------------------------------------------------- */
+.envelope-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+  height: 325px;
+  perspective: 1400px;
+  transform-style: preserve-3d;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  border-radius: 16px;
+  background: linear-gradient(150deg, #f8d5e5 0%, #e8a9c5 35%, #d483a9 70%, #a44977 100%);
+  box-shadow: 0 25px 65px rgba(15, 2, 20, 0.78),
+    0 0 40px rgba(244, 114, 182, 0.35),
+    0 0 20px rgba(255, 230, 195, 0.3),
+    inset 0 1px 2px rgba(255, 255, 255, 0.6);
+  border: 1.5px solid rgba(255, 235, 200, 0.85);
+  z-index: 10;
+  animation: envelopeFloat 5s ease-in-out infinite alternate;
+  transition: transform 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.4s ease;
+}
+
+@keyframes envelopeFloat {
+  0% {
+    transform: translateY(0px) rotate(0deg);
+  }
+
+  100% {
+    transform: translateY(-8px) rotate(0.4deg);
+  }
+}
+
+.envelope-wrapper:hover:not(.is-reading-active) {
+  box-shadow: 0 30px 80px rgba(8, 2, 14, 0.92),
+    0 0 50px rgba(244, 114, 182, 0.6),
+    0 0 25px rgba(255, 230, 185, 0.5);
+}
+
+/* Hào quang phát sáng bao quanh phong bì */
+.envelope-aura-glow {
+  position: absolute;
+  inset: -14px;
+  border-radius: 26px;
+  background: radial-gradient(circle, rgba(244, 114, 182, 0.35) 0%, rgba(192, 132, 252, 0.22) 45%, transparent 72%);
+  filter: blur(20px);
+  pointer-events: none;
+  z-index: -1;
+  transition: opacity 0.8s ease, transform 0.85s ease;
+}
+
+.envelope-edge-shine {
+  position: absolute;
+  inset: 0;
+  border-radius: 15px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 240, 248, 0.15) 35%, transparent 60%);
+  pointer-events: none;
+  z-index: 2;
+  transition: transform 0.85s ease;
+}
+
+/* Lớp vân hoa chìm lụa & ánh ngọc trai trên thân phong bì */
+.envelope-texture-pattern {
+  position: absolute;
+  inset: 0;
+  border-radius: 15px;
+  background: radial-gradient(circle at 50% 25%, rgba(255, 255, 255, 0.22) 0%, transparent 60%),
+    radial-gradient(circle at 85% 75%, rgba(255, 225, 240, 0.18) 0%, transparent 50%),
+    radial-gradient(circle at 15% 75%, rgba(255, 225, 240, 0.18) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 2;
+  transition: transform 0.85s ease;
+}
+
+/* Thân sau phong bì (Back Pocket Lining) */
+.envelope-back {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 15px;
+  background: linear-gradient(155deg, #3d0c26 0%, #5a143b 50%, #2f071c 100%);
+  box-shadow: inset 0 0 45px rgba(0, 0, 0, 0.65);
+  z-index: 1;
+  overflow: hidden;
+  transition: transform 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.85s ease,
+    filter 0.85s ease;
+}
+
+.envelope-back-sheen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: linear-gradient(180deg, rgba(255, 230, 185, 0.22) 0%, transparent 100%);
+}
+
+/* --------------------------------------------------------------------
+   8. NẮP PHONG BÌ PHÍA TRÊN - LẬT MỞ LÊN BẰNG 3D TRANSFORM
+   -------------------------------------------------------------------- */
+.envelope-flap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: calc(50% + 8px);
+  /* Khớp chuẩn xác chiều cao nắp từ mép trên tới tâm con dấu */
+  transform-origin: top center;
+  transform-style: preserve-3d;
+  z-index: 12;
+  /* Khi đóng: gập úp xuống che miệng phong bì, dưới con dấu */
+  transform: rotateX(0deg) translateZ(16px);
+  transition: transform 0.85s cubic-bezier(0.34, 1.15, 0.64, 1),
+    z-index 0.01s linear 0.4s;
+}
+
+.flap-side {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform-style: preserve-3d;
+}
+
+/* Mặt ngoài nắp khi phong bì đóng kín */
+.flap-front {
+  z-index: 2;
+  transform: rotateX(0deg);
+}
+
+.flap-triangle-shape {
+  width: 100%;
+  height: 100%;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  background: linear-gradient(180deg, #fadbe9 0%, #eeafcc 48%, #d47ea6 100%);
+  box-shadow: inset 0 2px 6px rgba(255, 240, 248, 0.55);
+  filter: drop-shadow(0 6px 16px rgba(15, 1, 8, 0.38));
+}
+
+.flap-gold-edge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  border-top: 1.5px solid var(--env-gold-border);
+  pointer-events: none;
+}
+
+/* Viền vàng kim tam giác nắp trước và nắp trong */
+.flap-front-gold-trim,
+.flap-back-gold-trim {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.flap-peak-sparkle {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 15px;
+  color: #fff4db;
+  text-shadow: 0 0 8px rgba(255, 230, 185, 0.95), 0 0 16px rgba(255, 255, 255, 0.9);
+  pointer-events: none;
+  z-index: 4;
+  animation: charmGlint 3s ease-in-out infinite alternate;
+}
+
+.flap-corner-flower {
+  position: absolute;
+  top: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 76px;
+  height: 38px;
+  pointer-events: none;
+  opacity: 0.9;
+  filter: drop-shadow(0 0 4px rgba(255, 230, 185, 0.6));
+}
+
+/* Mặt trong nắp lộ ra khi lật mở 176 độ */
+.flap-back {
+  transform: rotateY(180deg);
+  /* Lật mặt 3D chuẩn sang -Z, không làm lộn ngược toạ độ đỉnh - đáy */
+  z-index: 1;
+}
+
+.flap-inner-lining {
+  width: 100%;
+  height: 100%;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  background: linear-gradient(180deg, #380a22 0%, #561539 50%, #7c2252 100%);
+  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.72);
+}
+
+.flap-inner-rim {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  border-top: 1.5px solid rgba(255, 230, 185, 0.7);
+  pointer-events: none;
+}
+
+/* Trạng thái mở nắp phong bì (State 2 & 3) */
+.envelope-wrapper.is-open .envelope-flap {
+  transform: translateZ(-8px) rotateX(-176deg);
+}
+
+.envelope-wrapper.flap-behind .envelope-flap {
+  z-index: 2;
+  /* Lật ra sau lưng thiệp */
+}
+
+/* --------------------------------------------------------------------
+   9. MẶT TRƯỚC PHONG BÌ (TÚI ĐỰNG PHÍA TRƯỚC CHE PHẦN DƯỚI THIỆP)
+   -------------------------------------------------------------------- */
+.envelope-front-pocket {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  transform: translateZ(14px);
+  pointer-events: none;
+  transition: transform 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.85s ease,
+    filter 0.85s ease;
+}
+
+.envelope-fold {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.fold-left {
+  clip-path: polygon(0 0, 50% 50%, 0 100%);
+  background: linear-gradient(135deg, #f0adc9 0%, #dc8fb1 60%, #c47297 100%);
+  z-index: 3;
+  border-bottom-left-radius: 16px;
+  border-top-left-radius: 16px;
+  filter: drop-shadow(2px 0 6px rgba(10, 1, 4, 0.22));
+}
+
+.fold-right {
+  clip-path: polygon(100% 0, 50% 50%, 100% 100%);
+  background: linear-gradient(225deg, #f0adc9 0%, #dc8fb1 60%, #c47297 100%);
+  z-index: 3;
+  border-bottom-right-radius: 16px;
+  border-top-right-radius: 16px;
+  filter: drop-shadow(-2px 0 6px rgba(10, 1, 4, 0.22));
+}
+
+.fold-bottom {
+  clip-path: polygon(0 100%, 50% 50%, 100% 100%);
+  background: linear-gradient(0deg, #aa477a 0%, #c5739e 50%, #dc90b9 100%);
+  z-index: 4;
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+  box-shadow: inset 0 -2px 6px rgba(255, 230, 242, 0.35);
+  filter: drop-shadow(0 -4px 10px rgba(12, 1, 5, 0.32));
+}
+
+/* Đường chỉ vàng kim giao nhau nối các góc về tâm con dấu */
+.envelope-gold-seams {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+  filter: drop-shadow(0 0 3px rgba(255, 230, 185, 0.7));
+}
+
+/* Họa tiết hoa anh đào watercolor tại 4 góc phong bì chuẩn ảnh tham chiếu */
+.envelope-corner-floral {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0.95;
+  z-index: 6;
+  filter: drop-shadow(0 2px 8px rgba(244, 114, 182, 0.45));
+}
+
+.floral-bl {
+  bottom: 4px;
+  left: 6px;
+  width: 125px;
+  height: 105px;
+}
+
+.floral-br {
+  bottom: 4px;
+  right: 6px;
+  width: 125px;
+  height: 105px;
+}
+
+.floral-tl {
+  top: 4px;
+  left: 6px;
+  width: 95px;
+  height: 75px;
+}
+
+.floral-tr {
+  top: 4px;
+  right: 6px;
+  width: 95px;
+  height: 75px;
+}
+
+/* --------------------------------------------------------------------
+   10. RUY BĂNG LỤA TÍM MẬN VÀ CON DẤU SÁP 3D
+   -------------------------------------------------------------------- */
+.envelope-ribbon-tails {
+  position: absolute;
+  top: 49%;
+  left: 50%;
+  transform: translate(-50%, 0) translateZ(20px);
+  width: 50px;
+  height: 95px;
+  z-index: 12;
+  pointer-events: none;
+  display: flex;
+  justify-content: center;
+  transition: opacity 0.6s ease, transform 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ribbon-tail {
+  position: absolute;
+  top: 4px;
+  width: 15px;
+  height: 78px;
+  background: linear-gradient(180deg, #6c1337 0%, #4a0d24 60%, #290514 100%);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 86%, 0 100%);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.55);
+  border-top: 0.8px solid rgba(255, 230, 185, 0.35);
+}
+
+.tail-left {
+  left: 7px;
+  transform: rotate(-8deg);
+  transform-origin: top center;
+}
+
+.tail-right {
+  right: 7px;
+  height: 84px;
+  transform: rotate(7deg);
+  transform-origin: top center;
+}
+
+.ribbon-gold-charm {
+  position: absolute;
+  bottom: 0px;
+  font-size: 14px;
+  color: var(--env-gold-champagne);
+  text-shadow: 0 0 8px rgba(255, 230, 185, 0.85);
+  animation: charmGlint 3s ease-in-out infinite alternate;
+}
+
+@keyframes charmGlint {
+  0% {
+    transform: scale(0.9) rotate(-5deg);
+    opacity: 0.75;
+  }
+
+  100% {
+    transform: scale(1.15) rotate(5deg);
+    opacity: 1;
+    filter: drop-shadow(0 0 6px #fff);
+  }
+}
+
+/* Con dấu sáp 3D hình tròn */
+.envelope-wax-seal {
+  position: absolute;
+  top: 49%;
+  left: 50%;
+  transform: translate(-50%, -50%) translateZ(24px);
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  z-index: 14;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.4s ease,
+    box-shadow 0.35s ease;
+}
+
+.wax-seal-pulse-glow {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(244, 114, 182, 0.45) 0%, transparent 70%);
+  animation: waxGlowBreath 2.6s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+.wax-seal-body {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border-radius: 49% 51% 52% 48% / 51% 49% 51% 49%;
+  background: radial-gradient(circle at 35% 35%, var(--seal-wine-bright) 0%, var(--seal-wine-mid) 55%, var(--seal-wine-deep) 100%);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.65),
+    0 0 22px rgba(220, 45, 90, 0.5),
+    inset 0 2px 4px rgba(255, 255, 255, 0.45),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 195, 215, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease;
+}
+
+.wax-seal-relief-ring {
+  position: absolute;
+  inset: 5px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 200, 220, 0.35);
+  box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.5),
+    1px 1px 2px rgba(255, 255, 255, 0.25);
+  pointer-events: none;
+}
+
+.wax-rose-svg {
+  width: 36px;
+  height: 36px;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.55));
+  pointer-events: none;
+}
+
+.envelope-wax-seal:hover {
+  transform: translate(-50%, -50%) translateZ(24px) scale(1.08);
+}
+
+.envelope-wax-seal:hover .wax-seal-body {
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.7),
+    0 0 30px rgba(244, 114, 182, 0.75),
+    inset 0 2px 5px rgba(255, 255, 255, 0.6);
+}
+
+@keyframes waxGlowBreath {
+  0% {
+    transform: scale(0.92);
+    opacity: 0.5;
+  }
+
+  100% {
+    transform: scale(1.18);
+    opacity: 0.95;
+  }
+}
+
+/* Con dấu sáp ở Trạng thái 2 (Nhấp lần 1): Vẫn gắn liền trên mặt trước phong bì chuẩn ảnh tham chiếu */
+.envelope-wax-seal.is-clicked {
+  transform: translate(-50%, -50%) translateZ(24px) scale(1.04);
+  opacity: 1 !important;
+  box-shadow: 0 0 30px rgba(244, 114, 182, 0.65), 0 4px 18px rgba(0, 0, 0, 0.65);
+  pointer-events: auto;
+}
+
+/* --------------------------------------------------------------------
+   11. TẤM THIỆP (#letter-card) - CẤU TRÚC CHUẨN XÁC THEO 2 ẢNH THAM CHIẾU
+   - Trạng thái 1 (Chưa mở - Ảnh 1): Phong bì đóng kín, thiệp ẩn hoàn toàn bên trong
+   - Khi nhấp: Nắp mở, thiệp vươn lên thành một tờ thư dài, lớn, chiếm vị trí trung tâm (Ảnh 2)
+   -------------------------------------------------------------------- */
+.letter-card {
+  position: absolute;
+  top: 10px;
+  left: 16px;
+  right: 16px;
+  height: 280px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  cursor: pointer;
+  z-index: 2;
+  /* Ban đầu ẩn hoàn toàn bên trong lòng phong bì */
+  border-radius: 18px;
+  background: linear-gradient(168deg, #fffdfc 0%, #fff3f7 46%, #fbeaf2 100%);
+  border: 1.5px solid var(--paper-gold-border);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  box-sizing: border-box;
+  padding: 22px 20px;
+  overflow: hidden;
+  transform: translateY(0) scale(0.95);
+  transition: transform 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.6s ease,
+    background 0.8s ease,
+    box-shadow 0.8s ease,
+    border-color 0.8s ease;
+}
+
+/* Nền phản chiếu ánh ngọc trai */
+.letter-paper-sheen {
+  position: absolute;
+  inset: 0;
+  border-radius: 17px;
+  background: radial-gradient(circle at 80% 20%, rgba(255, 240, 248, 0.65) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+/* Đường viền chỉ kép bên trong tạo chiều sâu */
+.letter-inner-border {
+  position: absolute;
+  inset: 9px;
+  border: 1px solid var(--paper-inner-line);
+  border-radius: 14px;
+  pointer-events: none;
+}
+
+/* Nút đóng / thu nhỏ thiệp về phong bì (chỉ hiện khi đã mở thiệp) */
+.letter-close-btn {
+  position: absolute;
+  top: -38px;
+  right: -30px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 240, 248, 0.95);
+  border: 1.5px solid var(--paper-gold-border);
+  color: #881639;
+  font-size: 1.35rem;
+  line-height: 1;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 30;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 14px rgba(136, 22, 57, 0.22);
+  padding: 0;
+}
+
+.letter-close-btn:hover {
+  background: #ffffff;
+  color: #e11d48;
+  transform: scale(1.1);
+  box-shadow: 0 4px 18px rgba(225, 29, 72, 0.35);
+}
+
+/* --------------------------------------------------------------------
+   11B. HAI CHÚ BƯỚM TÍM PHÁT SÁNG LƯỢN QUANH THIỆP (CHUẨN ẢNH THAM CHIẾU 2)
+   -------------------------------------------------------------------- */
+.card-magic-butterfly {
+  position: absolute;
+  pointer-events: none;
+  z-index: 20;
+  opacity: 0;
+  transform: scale(0.65);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+  filter: drop-shadow(0 0 10px rgba(244, 114, 182, 0.85)) drop-shadow(0 0 20px rgba(168, 85, 247, 0.65));
+}
+
+.letter-card.is-reading .card-magic-butterfly {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.butterfly-left {
+  top: 40%;
+  left: -26px;
+  font-size: 28px;
+  animation: butterflyFloatL 4.5s ease-in-out infinite alternate;
+}
+
+.butterfly-right {
+  top: 16%;
+  right: -24px;
+  font-size: 26px;
+  animation: butterflyFloatR 5.2s ease-in-out infinite alternate;
+}
+
+.butterfly-emoji {
+  display: inline-block;
+  animation: butterflyWingFlap 0.75s ease-in-out infinite alternate;
+}
+
+@keyframes butterflyFloatL {
+  0% {
+    transform: translateY(0) rotate(-16deg) scale(0.95);
+  }
+
+  50% {
+    transform: translateY(-14px) rotate(-6deg) scale(1.08);
+  }
+
+  100% {
+    transform: translateY(8px) rotate(-22deg) scale(1);
+  }
+}
+
+@keyframes butterflyFloatR {
+  0% {
+    transform: translateY(0) rotate(16deg) scale(0.95);
+  }
+
+  50% {
+    transform: translateY(-16px) rotate(26deg) scale(1.08);
+  }
+
+  100% {
+    transform: translateY(10px) rotate(10deg) scale(1);
+  }
+}
+
+@keyframes butterflyWingFlap {
+  0% {
+    transform: scaleX(1);
+  }
+
+  100% {
+    transform: scaleX(0.72);
+  }
+}
+
+/* --------------------------------------------------------------------
+   12. PHẦN ĐỈNH THIỆP (.card-top-section) & TIÊU ĐỀ THƯ PHÁP
+   - Tiêu đề thư pháp bên trái: "Happy" / "Women's Day" + trái tim tím
+   - Khung ảnh hình chữ nhật đứng bên phải
+   -------------------------------------------------------------------- */
+.card-top-section {
+  width: 100%;
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 4px;
+  margin-bottom: 6px;
+  transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.card-preview-header {
+  text-align: left;
+  flex: 1;
+  position: relative;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Hoa anh đào trang trí 2 góc thiệp */
+.card-corner-sakura {
+  position: absolute;
+  width: 72px;
+  height: 48px;
+  pointer-events: none;
+  z-index: 3;
+  opacity: 0.95;
+  filter: drop-shadow(0 0 6px rgba(255, 230, 185, 0.75));
+}
+
+.sakura-tl {
+  top: 2px;
+  left: 2px;
+}
+
+.sakura-tr {
+  top: 2px;
+  right: 2px;
+}
+
+.card-script-happy {
+  margin-bottom: -6px;
+}
+
+.card-script-happy span {
+  font-family: var(--font-cursive);
+  font-size: 2.6rem;
+  font-weight: 400;
+  color: #581230;
+  letter-spacing: 0.8px;
+  line-height: 1.05;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.95), 0 0 14px rgba(244, 114, 182, 0.35);
+  display: inline-block;
+}
+
+.card-serif-womens {
+  margin-bottom: 4px;
+  white-space: nowrap;
+}
+
+.card-serif-womens span {
+  font-family: var(--font-serif);
+  font-size: 1.85rem;
+  font-weight: 700;
+  font-style: italic;
+  color: #6d1538;
+  letter-spacing: 0.6px;
+  line-height: 1.1;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.9);
+}
+
+.card-header-flourish {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  margin-top: 3px;
+}
+
+.flourish-bar {
+  display: inline-block;
+  width: 34px;
+  height: 1.2px;
+  background: linear-gradient(90deg, transparent, rgba(168, 60, 100, 0.5), transparent);
+}
+
+.flourish-heart {
+  font-size: 15px;
+  color: #9333ea;
+  filter: drop-shadow(0 0 6px rgba(192, 132, 252, 0.8));
+  animation: cardHeartPulse 2.2s ease-in-out infinite alternate;
+}
+
+@keyframes cardHeartPulse {
+  0% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 4px rgba(192, 132, 252, 0.6));
+  }
+
+  100% {
+    transform: scale(1.24);
+    filter: drop-shadow(0 0 10px rgba(147, 51, 234, 0.95));
+  }
+}
+
+/* Ẩn dòng chữ tên riêng trong header lá thư */
+.card-header-name {
+  display: none !important;
+}
+
+/* --------------------------------------------------------------------
+   12B. KHUNG ẢNH CHÂN DUNG HÌNH CHỮ NHẬT ĐỨNG GÓC TRÊN BÊN PHẢI (CHUẨN ẢNH MẪU)
+   - Khung avatar thu nhỏ 25-30% thành kích thước thanh lịch: 155px rộng x 195px cao
+   - Cố định tỉ lệ chuẩn đứng, flex: 0 0 155px
+   - Đặt ở phía trên bên phải, trồi nhẹ ra ngoài góc thiệp mà không lấn át tiêu đề
+   - Ảnh chân dung sắc nét, object-fit: cover, object-position: center
+   -------------------------------------------------------------------- */
+.card-photo-frame {
+  position: relative;
+  flex: 0 0 155px;
+  width: 155px;
+  height: 195px;
+  max-width: 155px;
+  max-height: 195px;
+  box-sizing: border-box;
+  border-radius: 12px;
+  padding: 5px;
+  background: linear-gradient(135deg,
+      rgba(255, 255, 255, 0.98) 0%,
+      rgba(255, 244, 250, 0.95) 100%);
+  border: 1.8px solid rgba(226, 186, 145, 0.95);
+  outline: 1px solid rgba(212, 175, 115, 0.4);
+  box-shadow:
+    0 12px 30px rgba(60, 15, 35, 0.25),
+    0 0 20px rgba(255, 215, 175, 0.35),
+    inset 0 1px 2px rgba(255, 255, 255, 1);
+  opacity: 0;
+  transform: scale(0.95) rotate(5.5deg);
+  transition:
+    opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.65s cubic-bezier(0.34, 1.25, 0.64, 1);
+  margin-top: -30px;
+  margin-right: -14px;
+  overflow: visible;
+}
+
+.letter-card.is-reading .card-photo-frame {
+  opacity: 1;
+  transform: scale(1) rotate(5.5deg);
+  transition-delay: 0.32s;
+}
+
+.photo-frame-border {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  background: #fdf2f6;
+  box-sizing: border-box;
+}
+
+.card-photo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+  border-radius: 7px;
+  transition: transform 0.5s ease;
+}
+
+.card-photo-frame:hover {
+  transform: rotate(4deg) scale(1.025);
+}
+
+.card-photo-frame:hover .card-photo-img {
+  transform: scale(1.03);
+}
+
+/* Nơ hồng trang trí đỉnh khung ảnh (thu nhỏ cân đối theo khung avatar) */
+.photo-decor-bow {
+  position: absolute;
+  top: -14px;
+  right: 6px;
+  font-size: 24px;
+  line-height: 1;
+  pointer-events: none;
+  filter: drop-shadow(0 3px 6px rgba(180, 40, 90, 0.35));
+  z-index: 6;
+  transform: rotate(10deg);
+  animation: photoBowFloat 3.6s ease-in-out infinite alternate;
+}
+
+@keyframes photoBowFloat {
+  0% {
+    transform: rotate(5deg) scale(0.96);
+  }
+
+  100% {
+    transform: rotate(12deg) scale(1.06);
+  }
+}
+
+/* Các bông hoa & icon nhỏ trang trí quanh góc khung ảnh (thu nhỏ tương ứng) */
+.photo-decor-flower {
+  position: absolute;
+  pointer-events: none;
+  line-height: 1;
+  user-select: none;
+  filter: drop-shadow(0 2px 5px rgba(80, 15, 40, 0.3));
+  animation: photoFlowerSway 4s ease-in-out infinite alternate;
+}
+
+.photo-decor-flower.flower-tr {
+  top: 18px;
+  right: -9px;
+  font-size: 16px;
+  animation-delay: 0s;
+}
+
+.photo-decor-flower.flower-bl {
+  bottom: -4px;
+  left: -6px;
+  font-size: 16px;
+  color: #e11d48;
+  filter: drop-shadow(0 2px 5px rgba(225, 29, 72, 0.45));
+  animation-delay: 1.2s;
+}
+
+.photo-decor-flower.flower-br {
+  bottom: -9px;
+  right: -9px;
+  font-size: 22px;
+  filter: drop-shadow(0 3px 8px rgba(225, 29, 72, 0.45));
+  animation-delay: 2.1s;
+}
+
+@keyframes photoFlowerSway {
+  0% {
+    transform: rotate(-5deg) scale(0.95);
+  }
+
+  100% {
+    transform: rotate(8deg) scale(1.08);
+  }
+}
+
+/* --------------------------------------------------------------------
+   13. PHẦN NỘI DUNG LÁ THƯ ĐẦY ĐỦ (.card-full-content)
+   Ẩn ở trạng thái đóng, chỉ hiển thị khi mở rộng thành công
+   -------------------------------------------------------------------- */
+.card-full-content {
+  display: none;
+  opacity: 0;
+  visibility: hidden;
+  position: relative;
+  z-index: 4;
+  margin-top: 2px !important; /* Xóa khoảng trống 1 hàng thừa phía trên */
+  padding: 0 4px;
+  transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1), visibility 0.6s ease;
+}
+
+/* Chỉ hiển thị sau khi lá thư đã trượt lên hoàn tất và ổn định tại tâm màn hình */
+.letter-card.is-reading.is-ready-to-read .card-full-content {
+  display: block;
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Lời chào mở đầu: "Gửi Din Din 💕," căn giữa nhẹ nhàng, xóa bỏ hàng thừa phía trên */
+.letter-greeting-line {
+  text-align: center;
+  margin-top: 2px !important;
+  margin-bottom: 8px !important;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.5s ease 0.08s, transform 0.5s ease 0.08s;
+}
+
+.letter-card.is-reading.is-ready-to-read .letter-greeting-line {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.letter-greeting-text {
+  font-family: var(--font-serif);
+  font-size: 1.42rem;
+  font-weight: 700;
+  font-style: italic;
+  color: #741635;
+  letter-spacing: 0.3px;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.95);
+}
+
+/* Vùng nội dung thư: Căn trái, cách dòng thanh thoát, font serif nghiêng thanh lịch màu tím mận */
+.letter-body-container {
+  position: relative;
+  text-align: left;
+  min-height: auto;
+  margin-bottom: 4px;
+  padding: 0 4px;
+}
+
+.letter-text-message {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1.02rem;
+  line-height: 1.72;
+  color: #4a152e;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  display: inline;
+  white-space: pre-wrap;
+  word-break: break-word;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.85);
+}
+
+/* Con trỏ máy đánh chữ */
+.typing-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1.2em;
+  background-color: #e11d48;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  animation: letterCursorBlink 0.8s infinite;
+}
+
+.typing-cursor.done {
+  display: none !important;
+}
+
+@keyframes letterCursorBlink {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
+}
+
+/* --------------------------------------------------------------------
+   13B. PHẦN CHÂN TRANG BỨC THƯ (.letter-card-footer)
+   Bao gồm: Ảnh GIF góc trái và Chữ ký góc phải, bố trí cân xứng không che chữ
+   -------------------------------------------------------------------- */
+.letter-card-footer {
+  position: relative;
+  margin-top: 4px;
+  padding: 0 4px;
+  min-height: 82px;
+  width: 100%;
+  display: flex !important;
+  align-items: flex-end !important;
+  justify-content: space-between !important;
+  box-sizing: border-box;
+  clear: both;
+}
+
+/* Chữ ký ở cuối thư góc phải, nằm trọn vẹn bên trong khung thiệp */
+.letter-signature-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin: 0 4px 6px auto !important;
+  width: fit-content;
+  position: relative;
+  z-index: 8;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.letter-signature-container.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.letter-signature-content {
+  font-family: var(--font-cursive);
+  font-size: 1.82rem;
+  font-weight: 700;
+  color: #741635;
+  letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.95);
+}
+
+.letter-signature-subtext,
+.signature-flourish-line {
+  display: none !important;
+}
+
+/* Nút đọc lại thư chúc mừng */
+.letter-footer-actions {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  margin-top: 14px !important;
+  margin-bottom: 6px !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  height: auto !important;
+  transition: opacity 0.45s ease, transform 0.45s ease !important;
+  transform: translateY(8px) !important;
+}
+
+.letter-footer-actions.visible {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  transform: translateY(0) !important;
+}
+
+.letter-replay-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 8px 22px;
+  background: linear-gradient(135deg, rgba(255, 240, 245, 0.95) 0%, rgba(254, 226, 236, 0.9) 100%);
+  border: 1.2px solid rgba(244, 114, 182, 0.55);
+  border-radius: 24px;
+  color: #9d174d;
+  font-family: var(--font-sans, 'Montserrat', sans-serif);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(225, 29, 72, 0.18), inset 0 1px 1px #ffffff;
+  transition: all 0.28s cubic-bezier(0.34, 1.25, 0.64, 1);
+  outline: none;
+}
+
+.letter-replay-button:hover {
+  background: linear-gradient(135deg, #ffffff 0%, #fce7f3 100%);
+  border-color: rgba(225, 29, 72, 0.8);
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 6px 18px rgba(225, 29, 72, 0.28);
+}
+
+.letter-replay-button:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.letter-replay-button .replay-arrow {
+  font-size: 1.05rem;
+  line-height: 1;
+  display: inline-block;
+  transition: transform 0.35s ease;
+}
+
+.letter-replay-button:hover .replay-arrow {
+  transform: rotate(-180deg);
+}
+
+/* BÔNG HOA TRANG TRÍ GÓC DƯỚI BÊN PHẢI CỦA KHUNG AVATAR POLAROID
+   - Cố định theo khung avatar cha (position: absolute trên card-photo-frame có position: relative)
+   - Đặt sát góc dưới bên phải, ôm viền nhẹ nhàng, tô điểm tự nhiên mà không che mặt nhân vật
+   - Kích thước vừa phải, giữ nguyên màu sắc, độ sâu và hiệu ứng phát sáng
+*/
+.photo-corner-bouquet {
+  position: absolute;
+  bottom: -18px;
+  right: -18px;
+  width: 96px;
+  height: auto;
+  pointer-events: none;
+  z-index: 8;
+  opacity: 1;
+  transform: rotate(8deg);
+  filter: drop-shadow(0 6px 14px rgba(45, 10, 25, 0.35));
+  transition: transform 0.4s ease, filter 0.4s ease;
+}
+
+.photo-corner-bouquet .bouquet-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+}
+
+.card-photo-frame:hover .photo-corner-bouquet {
+  transform: rotate(12deg) scale(1.05);
+  filter: drop-shadow(0 8px 18px rgba(225, 29, 72, 0.42));
+}
+
+/* ====================================================================
+   13C. ẢNH GIF HOẠT HỌA CỐ ĐỊNH Ở GÓC DƯỚI BÊN TRÁI BỨC THƯ
+   - Cố định ở góc trái dưới cùng của tấm thiệp (vùng trống đối xứng chữ ký)
+   - Vừa hiện thư ra (State 3) là xuất hiện và chạy chuyển động luôn
+   ==================================================================== */
+.card-bottom-left-gif {
+  position: relative !important;
+  bottom: auto !important;
+  left: auto !important;
+  width: 82px;
+  height: 82px;
+  flex: 0 0 82px;
+  z-index: 15;
+  pointer-events: none;
+  display: none;
+  opacity: 0;
+  margin-bottom: 2px;
+}
+
+/* Vừa hiện thư ra (State 3 - .is-reading) là xuất hiện chạy liền */
+.letter-card.is-reading .card-bottom-left-gif {
+  display: block !important;
+  opacity: 1 !important;
+  animation: cardGifCornerFadeIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.card-corner-gif-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.12)) drop-shadow(0 0 10px rgba(244, 114, 182, 0.35));
+}
+
+@keyframes cardGifCornerFadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.75) translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ====================================================================
+   14. QUẢN LÝ 3 TRẠNG THÁI TƯƠNG TÁC (CHÍNH XÁC 2 LẦN NHẤP)
+   - Trạng thái 1: Phong bì đóng kín chính giữa màn hình (closed)
+   - Nhấp lần 1: Nắp mở 3D, thiệp nhô lên CHỈ LỘ TIÊU ĐỀ (opened-partially)
+   - Nhấp lần 2: Thiệp vươn lên thành tờ thư lớn chính giữa màn hình (letter-revealed)
+   ==================================================================== */
+
+/* --- TRẠNG THÁI 1: PHONG BÌ ĐÓNG KÍN CHÍNH GIỮA MÀN HÌNH --- */
+.envelope-wrapper {
+  cursor: pointer;
+}
+
+/* Khi con dấu phát sáng lúc nhấp */
+.envelope-wax-seal.is-glowing .wax-seal-pulse-glow {
+  transform: scale(1.4);
+  opacity: 1;
+  background: radial-gradient(circle, rgba(255, 200, 230, 0.95) 0%, rgba(236, 72, 153, 0.7) 50%, transparent 80%);
+}
+
+/* --- TRẠNG THÁI 2 (NHẤP LẦN 1 - ẢNH THAM CHIẾU 1):
+   - Thiệp nhô lên VỪA ĐỦ khỏi miệng phong bì, CHỈ LỘ PHẦN TIÊU ĐỀ "Happy Women's Day ♡"
+   - Tông màu giấy hồng tím lãng mạn ánh ngọc & chữ trắng phát sáng chuẩn ảnh tham chiếu
+   - DỪNG LẠI CHỜ NGƯỜI DÙNG NHẤP TIẾP LẦN 2
+*/
+.letter-card.is-peeking {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  z-index: 5 !important;
+  /* Nhô lên vừa vặn 122px để đuôi chữ "h" của Linh nằm sát gần viền tam giác phong bì, thu gọn 1 hàng cho thiệp ngắn gọn */
+  transform: translateY(-122px) translateZ(8px) !important;
+  background: linear-gradient(170deg, #c981a5 0%, #b26c90 48%, #9b5379 100%) !important;
+  border: 1.5px solid rgba(255, 230, 185, 0.92) !important;
+  box-shadow: 0 12px 35px rgba(25, 3, 20, 0.45), 0 0 25px rgba(244, 114, 182, 0.3) !important;
+  padding: 16px 20px 14px !important;
+  cursor: pointer;
+  transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s ease;
+}
+
+.letter-card.is-peeking .card-top-section {
+  justify-content: center !important;
+  margin-bottom: 0 !important;
+  padding: 0 !important;
+}
+
+.letter-card.is-peeking .card-preview-header {
+  text-align: center !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  width: 100% !important;
+}
+
+.letter-card.is-peeking .card-script-happy {
+  margin-bottom: -4px !important;
+}
+
+.letter-card.is-peeking .card-script-happy span {
+  font-family: var(--font-cursive);
+  font-size: clamp(2.35rem, 5vw, 2.95rem) !important;
+  color: #ffffff !important;
+  text-shadow: 0 0 14px rgba(255, 255, 255, 0.95), 0 2px 6px rgba(55, 10, 35, 0.7) !important;
+  letter-spacing: 1px !important;
+  line-height: 1.05 !important;
+}
+
+.letter-card.is-peeking .card-serif-womens {
+  margin-bottom: 3px !important;
+}
+
+.letter-card.is-peeking .card-serif-womens span {
+  font-family: var(--font-serif);
+  font-size: clamp(1.6rem, 3.6vw, 2.15rem) !important;
+  font-style: italic !important;
+  font-weight: 600 !important;
+  color: #ffffff !important;
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.9), 0 2px 6px rgba(55, 10, 35, 0.7) !important;
+  letter-spacing: 0.8px !important;
+  line-height: 1.15 !important;
+}
+
+.letter-card.is-peeking .card-header-flourish {
+  justify-content: center !important;
+  margin-top: 2px !important;
+  gap: 12px !important;
+}
+
+.letter-card.is-peeking .flourish-bar {
+  background: linear-gradient(90deg, transparent, rgba(255, 230, 185, 0.9), transparent) !important;
+  width: 38px !important;
+  height: 1.2px !important;
+}
+
+.letter-card.is-peeking .flourish-heart {
+  color: #ffffff !important;
+  font-size: 15px !important;
+  filter: drop-shadow(0 0 8px rgba(255, 230, 185, 0.95)) drop-shadow(0 0 14px rgba(244, 114, 182, 0.8)) !important;
+}
+
+/* Dòng chữ Mỹ Linh ở trạng thái phong bì mở hé (Trạng thái 2) */
+.letter-card.is-peeking .card-header-name {
+  margin-top: 3px !important;
+  padding-left: 0 !important;
+  transform: translateX(82px) !important; /* Chữ "Mỹ Linh" bắt đầu ngay từ vị trí dấu gạch đỏ bên phải trái tim */
+  line-height: 1.1 !important;
+}
+
+.letter-card.is-peeking .card-header-name span {
+  font-family: 'Dancing Script', 'Caveat', var(--font-cursive);
+  font-size: clamp(1.85rem, 4vw, 2.35rem) !important; /* Nhỏ hơn Happy (clamp 2.35rem - 2.95rem) một chút */
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  text-shadow: 0 0 14px rgba(255, 255, 255, 0.95), 0 2px 6px rgba(55, 10, 35, 0.7), 0 0 16px rgba(255, 215, 235, 0.8) !important;
+  letter-spacing: 0.8px !important;
+  display: inline-block !important;
+}
+
+/* Ẩn hoàn toàn các phần nội dung khác khi đang ở trạng thái nhô lên (State 2) */
+.letter-card.is-peeking .card-photo-frame,
+.letter-card.is-peeking .card-full-content,
+.letter-card.is-peeking .photo-corner-bouquet,
+.letter-card.is-peeking .card-magic-butterfly,
+.letter-card.is-peeking .card-bottom-left-gif,
+.letter-card.is-peeking .letter-close-btn {
+  display: none !important;
+  opacity: 0 !important;
+}
+
+/* --- TRẠNG THÁI 3 (NHẤP LẦN 2 - ẢNH THAM CHIẾU 2):
+   - Kích thước chuẩn hình chữ nhật đứng thanh lịch: 600px rộng x 765px cao
+   - Chiều cao lớn hơn chiều rộng rõ rệt (tỉ lệ đứng ~1:1.28), loại bỏ hoàn toàn cảm giác vuông vức
+   - Cố định trên Desktop/Laptop, không tự phóng to theo độ phân giải màn hình
+   - Max-bounds an toàn (calc(100vw - 32px) và calc(100dvh - 32px))
+   - Vị trí chính giữa màn hình với transform: translate(-50%, -50%)
+*/
+.letter-card.is-reading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) translateZ(40px) !important;
+  width: 470px;
+  height: auto !important;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100dvh - 20px);
+  flex: 0 0 auto;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  z-index: 60 !important;
+  border-radius: 20px;
+  background: linear-gradient(168deg, #fffcfb 0%, #fff2f6 45%, #fce9f2 100%);
+  border: 1.8px solid rgba(228, 178, 142, 0.95);
+  box-shadow: 0 25px 80px rgba(15, 3, 20, 0.65),
+    0 0 50px rgba(244, 114, 182, 0.35),
+    0 0 90px rgba(192, 132, 252, 0.22),
+    inset 0 1px 3px rgba(255, 255, 255, 0.98);
+  padding: 18px 20px 14px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  cursor: default;
+  transition: transform 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.6s ease,
+    box-shadow 0.8s ease;
+  box-sizing: border-box;
+}
+
+/* Ẩn chữ "Mỹ Linh" trên bức thư lớn (chỉ giữ ở phong bì mở hé State 2) */
+.letter-card.is-reading .card-header-name {
+  display: none !important;
+}
+
+/* Tinh chỉnh khung ảnh avatar nhỏ gọn tương xứng với khung thư thu hẹp */
+.letter-card.is-reading .card-photo-frame {
+  flex: 0 0 138px !important;
+  width: 138px !important;
+  height: 172px !important;
+  max-width: 138px !important;
+  max-height: 172px !important;
+  margin-top: -20px !important;
+  margin-right: -8px !important;
+}
+
+.letter-card.is-reading .photo-corner-bouquet {
+  width: 84px !important;
+  bottom: -15px !important;
+  right: -15px !important;
+}
+
+/* Kích thước chữ Happy Women's Day cân đối và sang trọng */
+.letter-card.is-reading .card-script-happy span {
+  font-size: 3.05rem !important;
+  line-height: 1.05 !important;
+}
+
+.letter-card.is-reading .card-serif-womens span {
+  font-size: 2.1rem !important;
+  line-height: 1.1 !important;
+}
+
+.letter-card.is-reading .card-header-flourish {
+  margin-top: 6px !important;
+  gap: 12px !important;
+}
+
+.letter-card.is-reading .flourish-bar {
+  width: 44px !important;
+}
+
+.letter-card.is-reading .flourish-heart {
+  font-size: 16px !important;
+}
+
+.letter-card.is-reading .card-top-section {
+  margin-bottom: 2px !important;
+}
+
+.letter-card.is-reading .letter-greeting-line {
+  margin-top: -24px !important;
+  margin-bottom: 6px !important;
+  transform: translateX(-18px) translateY(4px);
+}
+
+.letter-card.is-reading.is-ready-to-read .letter-greeting-line {
+  opacity: 1 !important;
+  transform: translateX(-18px) translateY(0) !important;
+}
+
+.letter-card.is-reading .card-full-content {
+  margin-top: 0px !important;
+}
+
+.letter-card.is-reading .letter-text-message {
+  font-size: 0.98rem !important;
+  line-height: 1.66 !important;
+}
+
+/* Ảnh GIF hoạt họa và chân trang thu gọn gọn gàng, loại bỏ khoảng trống thừa */
+.letter-card.is-reading .letter-card-footer {
+  min-height: 72px !important;
+  margin-top: 4px !important;
+}
+
+.letter-card.is-reading .card-bottom-left-gif {
+  width: 72px !important;
+  height: 72px !important;
+  flex: 0 0 72px !important;
+}
+
+/* Chữ ký From: Trung nhỏ lại thanh tú, cân đối */
+.letter-card.is-reading .letter-signature-content {
+  font-size: 1.72rem !important;
+}
+
+.letter-card.is-reading::before {
+  content: '';
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  border: 1.2px solid rgba(228, 178, 142, 0.45);
+  border-radius: 16px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.letter-card.is-reading .letter-close-btn {
+  display: flex !important;
+  opacity: 0.85 !important;
+  pointer-events: auto !important;
+  top: 10px;
+  right: 10px;
+}
+
+/* PHONG BÌ KHI MỞ THƯ TOÀN BỘ (STATE 3):
+   - Nằm phía sau tấm thiệp, xoay nhẹ ~-10deg giống hệt ảnh mẫu tham chiếu
+   - Tạo cảm giác thiệp vừa được rút ra khỏi phong bì màu hồng pastel
+*/
+.envelope-wrapper.is-reading-active {
+  animation: none !important;
+  transform: none !important;
+  cursor: pointer;
+  z-index: 20;
+}
+
+.envelope-wrapper.is-reading-active .envelope-back,
+.envelope-wrapper.is-reading-active .envelope-flap,
+.envelope-wrapper.is-reading-active .envelope-front-pocket,
+.envelope-wrapper.is-reading-active .envelope-ribbon-tails,
+.envelope-wrapper.is-reading-active .envelope-wax-seal,
+.envelope-wrapper.is-reading-active .envelope-aura-glow,
+.envelope-wrapper.is-reading-active .envelope-edge-shine,
+.envelope-wrapper.is-reading-active .envelope-texture-pattern {
+  transform: translate(-14%, 110px) rotate(-10deg) scale(0.92) translateZ(-30px) !important;
+  opacity: 0.95;
+  transition: transform 0.85s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.8s ease;
+}
+
+.envelope-wrapper.is-reading-active .envelope-wax-seal {
+  pointer-events: none;
+  opacity: 0 !important;
+}
+
+/* ẨN TRIỆT ĐỂ DÒNG HƯỚNG DẪN KHI ĐÃ MỞ THƯ (STATE 3) - TRÁNH HOÀN TOÀN VIỆC ĐÈ CHỮ */
+.letter-screen.state-3 .envelope-prompt,
+.envelope-wrapper.is-reading-active~.envelope-prompt,
+.envelope-prompt.is-hidden {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  display: none !important;
+}
+
+.letter-screen.state-2 .letter-orbits-layer,
+.letter-screen.state-3 .letter-orbits-layer {
+  opacity: 0.65;
+}
+
+/* Thanh cuộn tinh tế cho lá thư */
+.letter-card::-webkit-scrollbar {
+  width: 5px;
+}
+
+.letter-card::-webkit-scrollbar-track {
+  background: rgba(255, 235, 245, 0.4);
+  border-radius: 999px;
+}
+
+.letter-card::-webkit-scrollbar-thumb {
+  background: rgba(226, 186, 145, 0.7);
+  border-radius: 999px;
+}
+
+.letter-card::-webkit-scrollbar-thumb:hover {
+  background: rgba(218, 168, 142, 0.9);
+}
+
+.letter-card::-webkit-scrollbar-thumb:hover {
+  background: rgba(218, 168, 142, 0.9);
+}
+
+/* ====================================================================
+   15. TƯƠNG THÍCH MỌI THIẾT BỊ (RESPONSIVE PC / TABLET / MOBILE)
+   ==================================================================== */
+@media (max-width: 640px) {
+  .letter-screen {
+    padding: 16px 10px 24px;
+  }
+
+  .letter-scene-container {
+    max-width: 100%;
+    min-height: 380px;
+  }
+
+  .envelope-wrapper {
+    max-width: 340px;
+    height: 225px;
+  }
+
+  .envelope-prompt {
+    bottom: clamp(-66px, -9vh, -78px);
+  }
+
+  /* Trạng thái 1 trên mobile: Ẩn trong lòng phong bì */
+  .letter-card {
+    height: 215px;
+    transform: translateY(20px);
+  }
+
+  /* Trạng thái 2 trên mobile: Nhô lên vừa phải để chữ h nằm gần viền tam giác */
+  .letter-card.is-peeking {
+    transform: translateY(-82px) translateZ(8px) !important;
+  }
+
+  .card-script-happy span {
+    font-size: 2.15rem;
+  }
+
+  .card-serif-womens span {
+    font-size: 1.5rem;
+  }
+
+  .card-header-name {
+    padding-left: 36px;
+  }
+
+  .card-header-name span {
+    font-size: 1.75rem;
+  }
+
+  .letter-card.is-peeking .card-header-name {
+    transform: translateX(58px) !important;
+  }
+
+  .letter-card.is-peeking .card-header-name span {
+    font-size: 1.7rem !important;
+  }
+
+  /* Trạng thái 3 mở rộng trên mobile: Căn giữa CHÍNH TÂM VÙNG NHÌN THẤY */
+  .letter-card.is-reading {
+    width: min(94vw, 395px);
+    max-height: min(85vh, 615px);
+    padding: 22px 16px 18px;
+    transform: translate(-50%, -50%) translateZ(40px) !important;
+  }
+
+  .letter-card.is-reading .card-top-section {
+    gap: 10px;
+  }
+
+  .letter-card.is-reading .card-script-happy span {
+    font-size: 1.95rem;
+  }
+
+  .letter-card.is-reading .card-serif-womens span {
+    font-size: 1.45rem;
+  }
+
+  .card-photo-frame {
+    flex: 0 0 120px;
+    width: 120px;
+    height: 152px;
+    max-width: 120px;
+    max-height: 152px;
+    padding: 4px;
+    transform: rotate(5deg);
+    margin-top: -20px;
+    margin-right: -6px;
+  }
+
+  .photo-decor-bow {
+    top: -11px;
+    right: 4px;
+    font-size: 22px;
+  }
+
+  .photo-corner-bouquet {
+    width: 78px;
+    bottom: -14px;
+    right: -14px;
+  }
+
+  .card-magic-butterfly {
+    display: none !important;
+  }
+
+  .card-bottom-left-gif {
+    width: 72px;
+    height: 72px;
+    bottom: 14px;
+    left: 16px;
+  }
+
+  /* Wrapper phong bì giữ nguyên tâm màn hình */
+  .envelope-wrapper.is-reading-active {
+    transform: none !important;
+    animation: none !important;
+  }
+
+  /* Các mảnh phong bì lùi xuống dưới và phía sau tờ thư */
+  .envelope-wrapper.is-reading-active .envelope-back,
+  .envelope-wrapper.is-reading-active .envelope-flap,
+  .envelope-wrapper.is-reading-active .envelope-front-pocket,
+  .envelope-wrapper.is-reading-active .envelope-ribbon-tails,
+  .envelope-wrapper.is-reading-active .envelope-wax-seal,
+  .envelope-wrapper.is-reading-active .envelope-aura-glow,
+  .envelope-wrapper.is-reading-active .envelope-edge-shine,
+  .envelope-wrapper.is-reading-active .envelope-texture-pattern {
+    transform: translate(0, 150px) scale(0.75) rotate(-2deg) translateZ(-30px) !important;
+    opacity: 0.85;
+  }
+
+  .letter-greeting-text {
+    font-size: 1.2rem;
+  }
+
+  .letter-body-container {
+    min-height: 110px;
+    margin-bottom: 12px;
+    padding: 0 4px;
+  }
+
+  .letter-text-message {
+    font-size: 0.94rem;
+    line-height: 1.76;
+  }
+
+  .letter-signature-content {
+    font-size: clamp(1.6rem, 4.8vw, 1.85rem);
+  }
+
+  .envelope-wax-seal {
+    width: 52px;
+    height: 52px;
+  }
+
+  .wax-seal-body {
+    width: 48px;
+    height: 48px;
+  }
+
+  .wax-rose-svg {
+    width: 26px;
+    height: 26px;
+  }
+
+  .sphere-action-bar {
+    bottom: 20px;
+  }
+
+  .sphere-to-letter-btn {
+    padding: 10px 22px;
+    font-size: 0.86rem;
+  }
+}
+
+/* Tối ưu màn hình điện thoại chiều cao thấp (360x640, v.v.) */
+@media (max-width: 640px) and (max-height: 680px) {
+  .letter-card.is-reading {
+    max-height: min(88vh, 520px) !important;
+    padding: 18px 14px 16px !important;
+    transform: translate(-50%, -50%) translateZ(40px) !important;
+  }
+
+  .card-photo-frame {
+    flex: 0 0 110px;
+    width: 110px;
+    height: 138px;
+    max-width: 110px;
+    max-height: 138px;
+  }
+
+  .letter-body-container {
+    min-height: 85px;
+    margin-bottom: 8px;
+  }
+
+  .photo-corner-bouquet {
+    width: 70px;
+    bottom: -12px;
+    right: -12px;
+  }
+}
+
+@media (max-width: 380px) {
+  .envelope-wrapper {
+    max-width: 300px;
+    height: 200px;
+  }
+
+  .letter-card.is-peeking {
+    transform: translateY(-70px) translateZ(8px) !important;
+  }
+
+  .card-script-happy span {
+    font-size: 1.85rem;
+  }
+
+  .card-serif-womens span {
+    font-size: 1.32rem;
+  }
+
+  .card-header-name {
+    padding-left: 26px;
+  }
+
+  .card-header-name span {
+    font-size: 1.48rem;
+  }
+
+  .letter-card.is-peeking .card-header-name {
+    transform: translateX(46px) !important;
+  }
+
+  .letter-card.is-peeking .card-header-name span {
+    font-size: 1.45rem !important;
+  }
+
+  .letter-card.is-reading {
+    width: 96vw;
+    max-height: min(88vh, 540px);
+    padding: 18px 12px 16px;
+    transform: translate(-50%, -50%) translateZ(40px) !important;
+  }
+
+  .card-photo-frame {
+    width: 110px;
+    height: 136px;
+    transform: rotate(4.5deg);
+  }
+
+  .card-corner-bouquet {
+    width: 110px;
+    bottom: -10px;
+    left: -10px;
+  }
+
+  .letter-body-container {
+    min-height: 95px;
+  }
+
+  .letter-text-message {
+    font-size: 0.88rem;
+    line-height: 1.68;
+  }
+
+  .card-bottom-left-gif {
+    width: 60px;
+    height: 60px;
+    flex: 0 0 60px;
+  }
+}
+
+/* --------------------------------------------------------------------
+   16. TÔN TRỌNG THIẾT LẬP GIẢM CHUYỂN ĐỘNG CỦA HỆ THỐNG
+   -------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+
+  .envelope-wrapper,
+  .letter-card,
+  .envelope-flap,
+  .letter-ambient-backdrop,
+  .cosmic-ring-outer,
+  .cosmic-ring-inner,
+  .prompt-text-bottom,
+  .wax-seal-pulse-glow,
+  .sphere-to-letter-btn {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+  }
+}
